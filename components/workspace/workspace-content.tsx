@@ -137,6 +137,13 @@ export async function WorkspaceContent() {
             </div>
 
             <div className="flex items-center gap-3">
+              <a
+                href="/preview"
+                className="rounded bg-accent/10 px-2.5 py-1 text-xs text-accent border border-accent/30 hover:bg-accent/20 transition-colors font-medium inline-flex items-center gap-1.5"
+              >
+                <span>Canvas Preview</span>
+                <span className="text-[10px]">→</span>
+              </a>
               <span className="rounded bg-surface-raised px-2.5 py-1 text-xs text-muted border border-border">
                 Role: <span className="text-foreground font-medium">{orgRole || "member"}</span>
               </span>

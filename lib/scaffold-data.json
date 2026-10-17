@@ -1,0 +1,1390 @@
+{
+  "rootPath": "D:/FY_Projects/repo-graph",
+  "stats": {
+    "filesFound": 100,
+    "filesParsed": 29,
+    "filesSkipped": 71,
+    "totalLines": 3354,
+    "distinctFolders": 14,
+    "reexportsFound": 6,
+    "reexportsResolved": 6
+  },
+  "files": [
+    {
+      "id": "56262c18f9e31051",
+      "path": "app/layout.tsx",
+      "folder": "app",
+      "extension": ".tsx",
+      "linesCount": 78,
+      "contentHash": "56262c18f9e31051f52707b659d159ff491e6b00b6076edd3d5465794da00095",
+      "fanIn": 0,
+      "fanOut": 0
+    },
+    {
+      "id": "23cad88a84bfcd6a",
+      "path": "app/page.tsx",
+      "folder": "app",
+      "extension": ".tsx",
+      "linesCount": 65,
+      "contentHash": "23cad88a84bfcd6acd8b7f2c08a5f5b88c94996f4033b191d3945eda634370d0",
+      "fanIn": 0,
+      "fanOut": 2
+    },
+    {
+      "id": "8d419deef5e2ce58",
+      "path": "app/preview/page.tsx",
+      "folder": "app/preview",
+      "extension": ".tsx",
+      "linesCount": 16,
+      "contentHash": "8d419deef5e2ce58ac9cff156100d7da3f11c403c2f686cb18633913ea848e25",
+      "fanIn": 0,
+      "fanOut": 3
+    },
+    {
+      "id": "a55c386779734291",
+      "path": "app/sign-in/[[...sign-in]]/page.tsx",
+      "folder": "app/sign-in/[[...sign-in]]",
+      "extension": ".tsx",
+      "linesCount": 12,
+      "contentHash": "a55c386779734291567869a8cd30a78907e241d791b0163452e8080ea93b8236",
+      "fanIn": 0,
+      "fanOut": 0
+    },
+    {
+      "id": "c659a2c96ea5aa93",
+      "path": "app/sign-up/[[...sign-up]]/page.tsx",
+      "folder": "app/sign-up/[[...sign-up]]",
+      "extension": ".tsx",
+      "linesCount": 12,
+      "contentHash": "c659a2c96ea5aa934eb267c3fdfd333c347b2ddceb10a8916d90d5d3ad1461fc",
+      "fanIn": 0,
+      "fanOut": 0
+    },
+    {
+      "id": "cd2d773990b30c86",
+      "path": "app/workspace/page.tsx",
+      "folder": "app/workspace",
+      "extension": ".tsx",
+      "linesCount": 25,
+      "contentHash": "cd2d773990b30c86ac82968a566cd84829399be415099d2aa73e7c5adcb2323b",
+      "fanIn": 0,
+      "fanOut": 2
+    },
+    {
+      "id": "b0737274a3b1f676",
+      "path": "components/auth-redirect.tsx",
+      "folder": "components",
+      "extension": ".tsx",
+      "linesCount": 12,
+      "contentHash": "b0737274a3b1f6767d0b7a6bd7246f61459393b6c67a1ed047d3ae2cb995c5e0",
+      "fanIn": 1,
+      "fanOut": 0
+    },
+    {
+      "id": "29443e8d61f665e3",
+      "path": "components/canvas/canvas-shell.tsx",
+      "folder": "components/canvas",
+      "extension": ".tsx",
+      "linesCount": 342,
+      "contentHash": "29443e8d61f665e3296810cd1b4a27693ef44e6d294e919b5435cc9649afbe39",
+      "fanIn": 1,
+      "fanOut": 2
+    },
+    {
+      "id": "6bbaeb0300297764",
+      "path": "components/canvas/folder-node.tsx",
+      "folder": "components/canvas",
+      "extension": ".tsx",
+      "linesCount": 296,
+      "contentHash": "6bbaeb03002977642f436097fc65b0fe317dd87bdb6c3a4c4229ecad23a535f2",
+      "fanIn": 1,
+      "fanOut": 1
+    },
+    {
+      "id": "5cfc012c1699fbe0",
+      "path": "components/canvas/graph-canvas.tsx",
+      "folder": "components/canvas",
+      "extension": ".tsx",
+      "linesCount": 434,
+      "contentHash": "5cfc012c1699fbe0845680d0c876a3f0c2275ac67afe5e7860dbeeec5f646758",
+      "fanIn": 1,
+      "fanOut": 3
+    },
+    {
+      "id": "1ea6ec7caad39686",
+      "path": "components/org-sync.tsx",
+      "folder": "components",
+      "extension": ".tsx",
+      "linesCount": 40,
+      "contentHash": "1ea6ec7caad396866c5c102647a171cd56298cc824c1bac6b3a915a85bd1405d",
+      "fanIn": 1,
+      "fanOut": 0
+    },
+    {
+      "id": "3305b8bbeaba2d02",
+      "path": "components/shell/app-shell.tsx",
+      "folder": "components/shell",
+      "extension": ".tsx",
+      "linesCount": 81,
+      "contentHash": "3305b8bbeaba2d0262b9bf4530255f1ae16e4ebb4901e87983b5ae0334ddd03e",
+      "fanIn": 3,
+      "fanOut": 1
+    },
+    {
+      "id": "0847da1539cba94a",
+      "path": "components/theme-toggle.tsx",
+      "folder": "components",
+      "extension": ".tsx",
+      "linesCount": 87,
+      "contentHash": "0847da1539cba94a0159bc7790e445cf57854250e8fe4568bc0f149604073dae",
+      "fanIn": 2,
+      "fanOut": 0
+    },
+    {
+      "id": "c44f41d2eab4cb82",
+      "path": "components/workspace/workspace-content.tsx",
+      "folder": "components/workspace",
+      "extension": ".tsx",
+      "linesCount": 282,
+      "contentHash": "c44f41d2eab4cb82683386e3d66013b655cb5cc1d15380b7e92311e21a9484f4",
+      "fanIn": 1,
+      "fanOut": 3
+    },
+    {
+      "id": "b3f07ac0e7e2ac04",
+      "path": "eslint.config.mjs",
+      "folder": ".",
+      "extension": ".mjs",
+      "linesCount": 18,
+      "contentHash": "b3f07ac0e7e2ac04a769d1d81dae64f23f385a30c8c2f8c86df3e0d38c50840d",
+      "fanIn": 0,
+      "fanOut": 0
+    },
+    {
+      "id": "00a7e0eb88fd2eab",
+      "path": "lib/env.ts",
+      "folder": "lib",
+      "extension": ".ts",
+      "linesCount": 34,
+      "contentHash": "00a7e0eb88fd2eab79226969589f20eea1fdc06807be8246591fbb73772657d4",
+      "fanIn": 1,
+      "fanOut": 0
+    },
+    {
+      "id": "d8391905404e0614",
+      "path": "lib/parser/adapter.ts",
+      "folder": "lib/parser",
+      "extension": ".ts",
+      "linesCount": 42,
+      "contentHash": "d8391905404e0614344230b76808e4d17b0b960bd6d56e84e82b6e4ec2ace61b",
+      "fanIn": 2,
+      "fanOut": 0
+    },
+    {
+      "id": "082a8554dbe2716b",
+      "path": "lib/parser/extractor.ts",
+      "folder": "lib/parser",
+      "extension": ".ts",
+      "linesCount": 67,
+      "contentHash": "082a8554dbe2716b789ce2f00e139766c73386701259ee1342cf7a393fe3b05b",
+      "fanIn": 1,
+      "fanOut": 1
+    },
+    {
+      "id": "c923d10baf9a2ff9",
+      "path": "lib/parser/folding.ts",
+      "folder": "lib/parser",
+      "extension": ".ts",
+      "linesCount": 260,
+      "contentHash": "c923d10baf9a2ff96b0b5d70cd722681bb04b772e561723aad5bca5fa80ca503",
+      "fanIn": 1,
+      "fanOut": 1
+    },
+    {
+      "id": "44fe7730b0d1a6a1",
+      "path": "lib/parser/graph.ts",
+      "folder": "lib/parser",
+      "extension": ".ts",
+      "linesCount": 63,
+      "contentHash": "44fe7730b0d1a6a181ed53ae1e5cc9d51d3dbf9faa2c5485fff99c485fd45f87",
+      "fanIn": 1,
+      "fanOut": 1
+    },
+    {
+      "id": "4f2d6faa60078fa5",
+      "path": "lib/parser/index.ts",
+      "folder": "lib/parser",
+      "extension": ".ts",
+      "linesCount": 182,
+      "contentHash": "4f2d6faa60078fa53a38bb97d7139e82c6b12bd06be8a9f3ba937d17c0db27e7",
+      "fanIn": 2,
+      "fanOut": 6
+    },
+    {
+      "id": "ffbc4a51a64a9304",
+      "path": "lib/parser/resolver.ts",
+      "folder": "lib/parser",
+      "extension": ".ts",
+      "linesCount": 272,
+      "contentHash": "ffbc4a51a64a93045aca14c8c043595ba80e662e88e42a239eeeefb8a2efbfc7",
+      "fanIn": 1,
+      "fanOut": 2
+    },
+    {
+      "id": "a1de8cedcf9f1d9f",
+      "path": "lib/parser/types.ts",
+      "folder": "lib/parser",
+      "extension": ".ts",
+      "linesCount": 72,
+      "contentHash": "a1de8cedcf9f1d9feb9631f976ed567a1caca8dd9300a8bed39c06ae4169d4c6",
+      "fanIn": 10,
+      "fanOut": 0
+    },
+    {
+      "id": "eca201909803b06d",
+      "path": "lib/parser/walker.ts",
+      "folder": "lib/parser",
+      "extension": ".ts",
+      "linesCount": 172,
+      "contentHash": "eca201909803b06dbd58c6ce22003372ec5c5efc93aba45706afe821fd163d86",
+      "fanIn": 1,
+      "fanOut": 1
+    },
+    {
+      "id": "e5d91c77bb28dc09",
+      "path": "lib/supabase/server.ts",
+      "folder": "lib/supabase",
+      "extension": ".ts",
+      "linesCount": 45,
+      "contentHash": "e5d91c77bb28dc0931f408feceb8a7939e683f965fbedcde95806580399b9b2b",
+      "fanIn": 1,
+      "fanOut": 1
+    },
+    {
+      "id": "60d57ffb12423d69",
+      "path": "next.config.ts",
+      "folder": ".",
+      "extension": ".ts",
+      "linesCount": 20,
+      "contentHash": "60d57ffb12423d69ec3fe00d02d0391e606d5620f8e41ad6d20d6ee15f3b5e8c",
+      "fanIn": 0,
+      "fanOut": 0
+    },
+    {
+      "id": "fa6f7e20f8fac813",
+      "path": "proxy.ts",
+      "folder": ".",
+      "extension": ".ts",
+      "linesCount": 10,
+      "contentHash": "fa6f7e20f8fac81316ee58dcbab6667961319776e0958b7914926fb28af5c8da",
+      "fanIn": 0,
+      "fanOut": 0
+    },
+    {
+      "id": "aeef582d155bf2a4",
+      "path": "scripts/parse.ts",
+      "folder": "scripts",
+      "extension": ".ts",
+      "linesCount": 143,
+      "contentHash": "aeef582d155bf2a403886941f6583b7f04869e4f77fc248f3df190d9c92d597e",
+      "fanIn": 0,
+      "fanOut": 1
+    },
+    {
+      "id": "a2995ee0296bde94",
+      "path": "scripts/test-acceptance.ts",
+      "folder": "scripts",
+      "extension": ".ts",
+      "linesCount": 172,
+      "contentHash": "a2995ee0296bde94f798db924db2ca96db27fa1fe2639867836ba7f85df76b11",
+      "fanIn": 0,
+      "fanOut": 1
+    }
+  ],
+  "edges": [
+    {
+      "id": "app/layout.tsx:1:import:@clerk/nextjs",
+      "source": "app/layout.tsx",
+      "target": null,
+      "kind": "import",
+      "specifier": "@clerk/nextjs",
+      "resolved": false,
+      "unresolvedReason": "external_dependency (@clerk/nextjs)"
+    },
+    {
+      "id": "app/layout.tsx:2:import:next",
+      "source": "app/layout.tsx",
+      "target": null,
+      "kind": "import",
+      "specifier": "next",
+      "resolved": false,
+      "unresolvedReason": "external_dependency (next)"
+    },
+    {
+      "id": "app/layout.tsx:3:import:next/font/google",
+      "source": "app/layout.tsx",
+      "target": null,
+      "kind": "import",
+      "specifier": "next/font/google",
+      "resolved": false,
+      "unresolvedReason": "external_dependency (next/font/google)"
+    },
+    {
+      "id": "app/layout.tsx:4:import:./globals.css",
+      "source": "app/layout.tsx",
+      "target": null,
+      "kind": "import",
+      "specifier": "./globals.css",
+      "resolved": false,
+      "unresolvedReason": "non_code_asset (app/globals.css)"
+    },
+    {
+      "id": "app/page.tsx:1:import:@clerk/nextjs",
+      "source": "app/page.tsx",
+      "target": null,
+      "kind": "import",
+      "specifier": "@clerk/nextjs",
+      "resolved": false,
+      "unresolvedReason": "external_dependency (@clerk/nextjs)"
+    },
+    {
+      "id": "app/page.tsx:2:import:@/components/theme-toggle",
+      "source": "app/page.tsx",
+      "target": "components/theme-toggle.tsx",
+      "kind": "import",
+      "specifier": "@/components/theme-toggle",
+      "resolved": true
+    },
+    {
+      "id": "app/page.tsx:3:import:@/components/auth-redirect",
+      "source": "app/page.tsx",
+      "target": "components/auth-redirect.tsx",
+      "kind": "import",
+      "specifier": "@/components/auth-redirect",
+      "resolved": true
+    },
+    {
+      "id": "app/page.tsx:4:import:react",
+      "source": "app/page.tsx",
+      "target": null,
+      "kind": "import",
+      "specifier": "react",
+      "resolved": false,
+      "unresolvedReason": "external_dependency (react)"
+    },
+    {
+      "id": "app/page.tsx:5:import:next/image",
+      "source": "app/page.tsx",
+      "target": null,
+      "kind": "import",
+      "specifier": "next/image",
+      "resolved": false,
+      "unresolvedReason": "external_dependency (next/image)"
+    },
+    {
+      "id": "app/preview/page.tsx:1:import:@/components/shell/app-shell",
+      "source": "app/preview/page.tsx",
+      "target": "components/shell/app-shell.tsx",
+      "kind": "import",
+      "specifier": "@/components/shell/app-shell",
+      "resolved": true
+    },
+    {
+      "id": "app/preview/page.tsx:2:import:@/components/canvas/canvas-shell",
+      "source": "app/preview/page.tsx",
+      "target": "components/canvas/canvas-shell.tsx",
+      "kind": "import",
+      "specifier": "@/components/canvas/canvas-shell",
+      "resolved": true
+    },
+    {
+      "id": "app/preview/page.tsx:3:import:@/lib/scaffold-data.json",
+      "source": "app/preview/page.tsx",
+      "target": null,
+      "kind": "import",
+      "specifier": "@/lib/scaffold-data.json",
+      "resolved": false,
+      "unresolvedReason": "non_code_asset (lib/scaffold-data.json)"
+    },
+    {
+      "id": "app/preview/page.tsx:4:import:@/lib/parser/types",
+      "source": "app/preview/page.tsx",
+      "target": "lib/parser/types.ts",
+      "kind": "import",
+      "specifier": "@/lib/parser/types",
+      "resolved": true
+    },
+    {
+      "id": "app/sign-in/[[...sign-in]]/page.tsx:1:import:@clerk/nextjs",
+      "source": "app/sign-in/[[...sign-in]]/page.tsx",
+      "target": null,
+      "kind": "import",
+      "specifier": "@clerk/nextjs",
+      "resolved": false,
+      "unresolvedReason": "external_dependency (@clerk/nextjs)"
+    },
+    {
+      "id": "app/sign-in/[[...sign-in]]/page.tsx:2:import:react",
+      "source": "app/sign-in/[[...sign-in]]/page.tsx",
+      "target": null,
+      "kind": "import",
+      "specifier": "react",
+      "resolved": false,
+      "unresolvedReason": "external_dependency (react)"
+    },
+    {
+      "id": "app/sign-up/[[...sign-up]]/page.tsx:1:import:@clerk/nextjs",
+      "source": "app/sign-up/[[...sign-up]]/page.tsx",
+      "target": null,
+      "kind": "import",
+      "specifier": "@clerk/nextjs",
+      "resolved": false,
+      "unresolvedReason": "external_dependency (@clerk/nextjs)"
+    },
+    {
+      "id": "app/sign-up/[[...sign-up]]/page.tsx:2:import:react",
+      "source": "app/sign-up/[[...sign-up]]/page.tsx",
+      "target": null,
+      "kind": "import",
+      "specifier": "react",
+      "resolved": false,
+      "unresolvedReason": "external_dependency (react)"
+    },
+    {
+      "id": "app/workspace/page.tsx:1:import:@clerk/nextjs/server",
+      "source": "app/workspace/page.tsx",
+      "target": null,
+      "kind": "import",
+      "specifier": "@clerk/nextjs/server",
+      "resolved": false,
+      "unresolvedReason": "external_dependency (@clerk/nextjs/server)"
+    },
+    {
+      "id": "app/workspace/page.tsx:2:import:react",
+      "source": "app/workspace/page.tsx",
+      "target": null,
+      "kind": "import",
+      "specifier": "react",
+      "resolved": false,
+      "unresolvedReason": "external_dependency (react)"
+    },
+    {
+      "id": "app/workspace/page.tsx:3:import:@/components/workspace/workspace-content",
+      "source": "app/workspace/page.tsx",
+      "target": "components/workspace/workspace-content.tsx",
+      "kind": "import",
+      "specifier": "@/components/workspace/workspace-content",
+      "resolved": true
+    },
+    {
+      "id": "app/workspace/page.tsx:4:import:@/components/shell/app-shell",
+      "source": "app/workspace/page.tsx",
+      "target": "components/shell/app-shell.tsx",
+      "kind": "import",
+      "specifier": "@/components/shell/app-shell",
+      "resolved": true
+    },
+    {
+      "id": "components/auth-redirect.tsx:1:import:@clerk/nextjs/server",
+      "source": "components/auth-redirect.tsx",
+      "target": null,
+      "kind": "import",
+      "specifier": "@clerk/nextjs/server",
+      "resolved": false,
+      "unresolvedReason": "external_dependency (@clerk/nextjs/server)"
+    },
+    {
+      "id": "components/auth-redirect.tsx:2:import:next/navigation",
+      "source": "components/auth-redirect.tsx",
+      "target": null,
+      "kind": "import",
+      "specifier": "next/navigation",
+      "resolved": false,
+      "unresolvedReason": "external_dependency (next/navigation)"
+    },
+    {
+      "id": "components/canvas/canvas-shell.tsx:3:import:react",
+      "source": "components/canvas/canvas-shell.tsx",
+      "target": null,
+      "kind": "import",
+      "specifier": "react",
+      "resolved": false,
+      "unresolvedReason": "external_dependency (react)"
+    },
+    {
+      "id": "components/canvas/canvas-shell.tsx:4:import:@/lib/parser/types",
+      "source": "components/canvas/canvas-shell.tsx",
+      "target": "lib/parser/types.ts",
+      "kind": "import",
+      "specifier": "@/lib/parser/types",
+      "resolved": true
+    },
+    {
+      "id": "components/canvas/canvas-shell.tsx:5:import:./graph-canvas",
+      "source": "components/canvas/canvas-shell.tsx",
+      "target": "components/canvas/graph-canvas.tsx",
+      "kind": "import",
+      "specifier": "./graph-canvas",
+      "resolved": true
+    },
+    {
+      "id": "components/canvas/folder-node.tsx:3:import:react",
+      "source": "components/canvas/folder-node.tsx",
+      "target": null,
+      "kind": "import",
+      "specifier": "react",
+      "resolved": false,
+      "unresolvedReason": "external_dependency (react)"
+    },
+    {
+      "id": "components/canvas/folder-node.tsx:4:import:@xyflow/react",
+      "source": "components/canvas/folder-node.tsx",
+      "target": null,
+      "kind": "import",
+      "specifier": "@xyflow/react",
+      "resolved": false,
+      "unresolvedReason": "external_dependency (@xyflow/react)"
+    },
+    {
+      "id": "components/canvas/folder-node.tsx:5:import:@/lib/parser/types",
+      "source": "components/canvas/folder-node.tsx",
+      "target": "lib/parser/types.ts",
+      "kind": "import",
+      "specifier": "@/lib/parser/types",
+      "resolved": true
+    },
+    {
+      "id": "components/canvas/graph-canvas.tsx:3:import:react",
+      "source": "components/canvas/graph-canvas.tsx",
+      "target": null,
+      "kind": "import",
+      "specifier": "react",
+      "resolved": false,
+      "unresolvedReason": "external_dependency (react)"
+    },
+    {
+      "id": "components/canvas/graph-canvas.tsx:4:import:@xyflow/react",
+      "source": "components/canvas/graph-canvas.tsx",
+      "target": null,
+      "kind": "import",
+      "specifier": "@xyflow/react",
+      "resolved": false,
+      "unresolvedReason": "external_dependency (@xyflow/react)"
+    },
+    {
+      "id": "components/canvas/graph-canvas.tsx:13:import:@xyflow/react/dist/style.css",
+      "source": "components/canvas/graph-canvas.tsx",
+      "target": null,
+      "kind": "import",
+      "specifier": "@xyflow/react/dist/style.css",
+      "resolved": false,
+      "unresolvedReason": "external_dependency (@xyflow/react/dist/style.css)"
+    },
+    {
+      "id": "components/canvas/graph-canvas.tsx:14:import:dagre",
+      "source": "components/canvas/graph-canvas.tsx",
+      "target": null,
+      "kind": "import",
+      "specifier": "dagre",
+      "resolved": false,
+      "unresolvedReason": "external_dependency (dagre)"
+    },
+    {
+      "id": "components/canvas/graph-canvas.tsx:15:import:@/lib/parser/types",
+      "source": "components/canvas/graph-canvas.tsx",
+      "target": "lib/parser/types.ts",
+      "kind": "import",
+      "specifier": "@/lib/parser/types",
+      "resolved": true
+    },
+    {
+      "id": "components/canvas/graph-canvas.tsx:16:import:@/lib/parser/folding",
+      "source": "components/canvas/graph-canvas.tsx",
+      "target": "lib/parser/folding.ts",
+      "kind": "import",
+      "specifier": "@/lib/parser/folding",
+      "resolved": true
+    },
+    {
+      "id": "components/canvas/graph-canvas.tsx:17:import:./folder-node",
+      "source": "components/canvas/graph-canvas.tsx",
+      "target": "components/canvas/folder-node.tsx",
+      "kind": "import",
+      "specifier": "./folder-node",
+      "resolved": true
+    },
+    {
+      "id": "components/org-sync.tsx:3:import:@clerk/nextjs",
+      "source": "components/org-sync.tsx",
+      "target": null,
+      "kind": "import",
+      "specifier": "@clerk/nextjs",
+      "resolved": false,
+      "unresolvedReason": "external_dependency (@clerk/nextjs)"
+    },
+    {
+      "id": "components/org-sync.tsx:4:import:react",
+      "source": "components/org-sync.tsx",
+      "target": null,
+      "kind": "import",
+      "specifier": "react",
+      "resolved": false,
+      "unresolvedReason": "external_dependency (react)"
+    },
+    {
+      "id": "components/org-sync.tsx:5:import:next/navigation",
+      "source": "components/org-sync.tsx",
+      "target": null,
+      "kind": "import",
+      "specifier": "next/navigation",
+      "resolved": false,
+      "unresolvedReason": "external_dependency (next/navigation)"
+    },
+    {
+      "id": "components/shell/app-shell.tsx:1:import:@clerk/nextjs",
+      "source": "components/shell/app-shell.tsx",
+      "target": null,
+      "kind": "import",
+      "specifier": "@clerk/nextjs",
+      "resolved": false,
+      "unresolvedReason": "external_dependency (@clerk/nextjs)"
+    },
+    {
+      "id": "components/shell/app-shell.tsx:2:import:@/components/theme-toggle",
+      "source": "components/shell/app-shell.tsx",
+      "target": "components/theme-toggle.tsx",
+      "kind": "import",
+      "specifier": "@/components/theme-toggle",
+      "resolved": true
+    },
+    {
+      "id": "components/shell/app-shell.tsx:3:import:react",
+      "source": "components/shell/app-shell.tsx",
+      "target": null,
+      "kind": "import",
+      "specifier": "react",
+      "resolved": false,
+      "unresolvedReason": "external_dependency (react)"
+    },
+    {
+      "id": "components/shell/app-shell.tsx:4:import:next/image",
+      "source": "components/shell/app-shell.tsx",
+      "target": null,
+      "kind": "import",
+      "specifier": "next/image",
+      "resolved": false,
+      "unresolvedReason": "external_dependency (next/image)"
+    },
+    {
+      "id": "components/theme-toggle.tsx:3:import:react",
+      "source": "components/theme-toggle.tsx",
+      "target": null,
+      "kind": "import",
+      "specifier": "react",
+      "resolved": false,
+      "unresolvedReason": "external_dependency (react)"
+    },
+    {
+      "id": "components/workspace/workspace-content.tsx:1:import:@clerk/nextjs/server",
+      "source": "components/workspace/workspace-content.tsx",
+      "target": null,
+      "kind": "import",
+      "specifier": "@clerk/nextjs/server",
+      "resolved": false,
+      "unresolvedReason": "external_dependency (@clerk/nextjs/server)"
+    },
+    {
+      "id": "components/workspace/workspace-content.tsx:2:import:@/components/shell/app-shell",
+      "source": "components/workspace/workspace-content.tsx",
+      "target": "components/shell/app-shell.tsx",
+      "kind": "import",
+      "specifier": "@/components/shell/app-shell",
+      "resolved": true
+    },
+    {
+      "id": "components/workspace/workspace-content.tsx:3:import:@/components/org-sync",
+      "source": "components/workspace/workspace-content.tsx",
+      "target": "components/org-sync.tsx",
+      "kind": "import",
+      "specifier": "@/components/org-sync",
+      "resolved": true
+    },
+    {
+      "id": "components/workspace/workspace-content.tsx:4:import:@/lib/supabase/server",
+      "source": "components/workspace/workspace-content.tsx",
+      "target": "lib/supabase/server.ts",
+      "kind": "import",
+      "specifier": "@/lib/supabase/server",
+      "resolved": true
+    },
+    {
+      "id": "eslint.config.mjs:1:import:eslint/config",
+      "source": "eslint.config.mjs",
+      "target": null,
+      "kind": "import",
+      "specifier": "eslint/config",
+      "resolved": false,
+      "unresolvedReason": "external_dependency (eslint/config)"
+    },
+    {
+      "id": "eslint.config.mjs:2:import:eslint-config-next/core-web-vitals",
+      "source": "eslint.config.mjs",
+      "target": null,
+      "kind": "import",
+      "specifier": "eslint-config-next/core-web-vitals",
+      "resolved": false,
+      "unresolvedReason": "external_dependency (eslint-config-next/core-web-vitals)"
+    },
+    {
+      "id": "eslint.config.mjs:3:import:eslint-config-next/typescript",
+      "source": "eslint.config.mjs",
+      "target": null,
+      "kind": "import",
+      "specifier": "eslint-config-next/typescript",
+      "resolved": false,
+      "unresolvedReason": "external_dependency (eslint-config-next/typescript)"
+    },
+    {
+      "id": "lib/parser/extractor.ts:1:import:ts-morph",
+      "source": "lib/parser/extractor.ts",
+      "target": null,
+      "kind": "import",
+      "specifier": "ts-morph",
+      "resolved": false,
+      "unresolvedReason": "external_dependency (ts-morph)"
+    },
+    {
+      "id": "lib/parser/extractor.ts:2:import:./types",
+      "source": "lib/parser/extractor.ts",
+      "target": "lib/parser/types.ts",
+      "kind": "import",
+      "specifier": "./types",
+      "resolved": true
+    },
+    {
+      "id": "lib/parser/folding.ts:1:import:./types",
+      "source": "lib/parser/folding.ts",
+      "target": "lib/parser/types.ts",
+      "kind": "import",
+      "specifier": "./types",
+      "resolved": true
+    },
+    {
+      "id": "lib/parser/graph.ts:1:import:./types",
+      "source": "lib/parser/graph.ts",
+      "target": "lib/parser/types.ts",
+      "kind": "import",
+      "specifier": "./types",
+      "resolved": true
+    },
+    {
+      "id": "lib/parser/index.ts:1:import:node:path",
+      "source": "lib/parser/index.ts",
+      "target": null,
+      "kind": "import",
+      "specifier": "node:path",
+      "resolved": false,
+      "unresolvedReason": "builtin_module (node:path)"
+    },
+    {
+      "id": "lib/parser/index.ts:2:import:node:fs",
+      "source": "lib/parser/index.ts",
+      "target": null,
+      "kind": "import",
+      "specifier": "node:fs",
+      "resolved": false,
+      "unresolvedReason": "builtin_module (node:fs)"
+    },
+    {
+      "id": "lib/parser/index.ts:3:import:ts-morph",
+      "source": "lib/parser/index.ts",
+      "target": null,
+      "kind": "import",
+      "specifier": "ts-morph",
+      "resolved": false,
+      "unresolvedReason": "external_dependency (ts-morph)"
+    },
+    {
+      "id": "lib/parser/index.ts:4:import:./types",
+      "source": "lib/parser/index.ts",
+      "target": "lib/parser/types.ts",
+      "kind": "import",
+      "specifier": "./types",
+      "resolved": true
+    },
+    {
+      "id": "lib/parser/index.ts:12:import:./adapter",
+      "source": "lib/parser/index.ts",
+      "target": "lib/parser/adapter.ts",
+      "kind": "import",
+      "specifier": "./adapter",
+      "resolved": true
+    },
+    {
+      "id": "lib/parser/index.ts:13:import:./walker",
+      "source": "lib/parser/index.ts",
+      "target": "lib/parser/walker.ts",
+      "kind": "import",
+      "specifier": "./walker",
+      "resolved": true
+    },
+    {
+      "id": "lib/parser/index.ts:14:import:./extractor",
+      "source": "lib/parser/index.ts",
+      "target": "lib/parser/extractor.ts",
+      "kind": "import",
+      "specifier": "./extractor",
+      "resolved": true
+    },
+    {
+      "id": "lib/parser/index.ts:15:import:./resolver",
+      "source": "lib/parser/index.ts",
+      "target": "lib/parser/resolver.ts",
+      "kind": "import",
+      "specifier": "./resolver",
+      "resolved": true
+    },
+    {
+      "id": "lib/parser/index.ts:20:import:./graph",
+      "source": "lib/parser/index.ts",
+      "target": "lib/parser/graph.ts",
+      "kind": "import",
+      "specifier": "./graph",
+      "resolved": true
+    },
+    {
+      "id": "lib/parser/index.ts:22:reexport:./types",
+      "source": "lib/parser/index.ts",
+      "target": "lib/parser/types.ts",
+      "kind": "reexport",
+      "specifier": "./types",
+      "resolved": true
+    },
+    {
+      "id": "lib/parser/index.ts:23:reexport:./adapter",
+      "source": "lib/parser/index.ts",
+      "target": "lib/parser/adapter.ts",
+      "kind": "reexport",
+      "specifier": "./adapter",
+      "resolved": true
+    },
+    {
+      "id": "lib/parser/index.ts:24:reexport:./walker",
+      "source": "lib/parser/index.ts",
+      "target": "lib/parser/walker.ts",
+      "kind": "reexport",
+      "specifier": "./walker",
+      "resolved": true
+    },
+    {
+      "id": "lib/parser/index.ts:25:reexport:./extractor",
+      "source": "lib/parser/index.ts",
+      "target": "lib/parser/extractor.ts",
+      "kind": "reexport",
+      "specifier": "./extractor",
+      "resolved": true
+    },
+    {
+      "id": "lib/parser/index.ts:26:reexport:./resolver",
+      "source": "lib/parser/index.ts",
+      "target": "lib/parser/resolver.ts",
+      "kind": "reexport",
+      "specifier": "./resolver",
+      "resolved": true
+    },
+    {
+      "id": "lib/parser/index.ts:27:reexport:./graph",
+      "source": "lib/parser/index.ts",
+      "target": "lib/parser/graph.ts",
+      "kind": "reexport",
+      "specifier": "./graph",
+      "resolved": true
+    },
+    {
+      "id": "lib/parser/resolver.ts:1:import:node:path",
+      "source": "lib/parser/resolver.ts",
+      "target": null,
+      "kind": "import",
+      "specifier": "node:path",
+      "resolved": false,
+      "unresolvedReason": "builtin_module (node:path)"
+    },
+    {
+      "id": "lib/parser/resolver.ts:2:import:node:fs",
+      "source": "lib/parser/resolver.ts",
+      "target": null,
+      "kind": "import",
+      "specifier": "node:fs",
+      "resolved": false,
+      "unresolvedReason": "builtin_module (node:fs)"
+    },
+    {
+      "id": "lib/parser/resolver.ts:3:import:typescript",
+      "source": "lib/parser/resolver.ts",
+      "target": null,
+      "kind": "import",
+      "specifier": "typescript",
+      "resolved": false,
+      "unresolvedReason": "external_dependency (typescript)"
+    },
+    {
+      "id": "lib/parser/resolver.ts:4:import:./adapter",
+      "source": "lib/parser/resolver.ts",
+      "target": "lib/parser/adapter.ts",
+      "kind": "import",
+      "specifier": "./adapter",
+      "resolved": true
+    },
+    {
+      "id": "lib/parser/resolver.ts:5:import:./types",
+      "source": "lib/parser/resolver.ts",
+      "target": "lib/parser/types.ts",
+      "kind": "import",
+      "specifier": "./types",
+      "resolved": true
+    },
+    {
+      "id": "lib/parser/walker.ts:1:import:node:fs",
+      "source": "lib/parser/walker.ts",
+      "target": null,
+      "kind": "import",
+      "specifier": "node:fs",
+      "resolved": false,
+      "unresolvedReason": "builtin_module (node:fs)"
+    },
+    {
+      "id": "lib/parser/walker.ts:2:import:node:path",
+      "source": "lib/parser/walker.ts",
+      "target": null,
+      "kind": "import",
+      "specifier": "node:path",
+      "resolved": false,
+      "unresolvedReason": "builtin_module (node:path)"
+    },
+    {
+      "id": "lib/parser/walker.ts:3:import:node:crypto",
+      "source": "lib/parser/walker.ts",
+      "target": null,
+      "kind": "import",
+      "specifier": "node:crypto",
+      "resolved": false,
+      "unresolvedReason": "builtin_module (node:crypto)"
+    },
+    {
+      "id": "lib/parser/walker.ts:4:import:./types",
+      "source": "lib/parser/walker.ts",
+      "target": "lib/parser/types.ts",
+      "kind": "import",
+      "specifier": "./types",
+      "resolved": true
+    },
+    {
+      "id": "lib/supabase/server.ts:1:import:@supabase/supabase-js",
+      "source": "lib/supabase/server.ts",
+      "target": null,
+      "kind": "import",
+      "specifier": "@supabase/supabase-js",
+      "resolved": false,
+      "unresolvedReason": "external_dependency (@supabase/supabase-js)"
+    },
+    {
+      "id": "lib/supabase/server.ts:2:import:@clerk/nextjs/server",
+      "source": "lib/supabase/server.ts",
+      "target": null,
+      "kind": "import",
+      "specifier": "@clerk/nextjs/server",
+      "resolved": false,
+      "unresolvedReason": "external_dependency (@clerk/nextjs/server)"
+    },
+    {
+      "id": "lib/supabase/server.ts:3:import:@/lib/env",
+      "source": "lib/supabase/server.ts",
+      "target": "lib/env.ts",
+      "kind": "import",
+      "specifier": "@/lib/env",
+      "resolved": true
+    },
+    {
+      "id": "next.config.ts:1:import:next",
+      "source": "next.config.ts",
+      "target": null,
+      "kind": "import",
+      "specifier": "next",
+      "resolved": false,
+      "unresolvedReason": "external_dependency (next)"
+    },
+    {
+      "id": "proxy.ts:1:import:@clerk/nextjs/server",
+      "source": "proxy.ts",
+      "target": null,
+      "kind": "import",
+      "specifier": "@clerk/nextjs/server",
+      "resolved": false,
+      "unresolvedReason": "external_dependency (@clerk/nextjs/server)"
+    },
+    {
+      "id": "scripts/parse.ts:1:import:node:fs",
+      "source": "scripts/parse.ts",
+      "target": null,
+      "kind": "import",
+      "specifier": "node:fs",
+      "resolved": false,
+      "unresolvedReason": "builtin_module (node:fs)"
+    },
+    {
+      "id": "scripts/parse.ts:2:import:node:path",
+      "source": "scripts/parse.ts",
+      "target": null,
+      "kind": "import",
+      "specifier": "node:path",
+      "resolved": false,
+      "unresolvedReason": "builtin_module (node:path)"
+    },
+    {
+      "id": "scripts/parse.ts:3:import:../lib/parser",
+      "source": "scripts/parse.ts",
+      "target": "lib/parser/index.ts",
+      "kind": "import",
+      "specifier": "../lib/parser",
+      "resolved": true
+    },
+    {
+      "id": "scripts/test-acceptance.ts:1:import:node:path",
+      "source": "scripts/test-acceptance.ts",
+      "target": null,
+      "kind": "import",
+      "specifier": "node:path",
+      "resolved": false,
+      "unresolvedReason": "builtin_module (node:path)"
+    },
+    {
+      "id": "scripts/test-acceptance.ts:2:import:../lib/parser",
+      "source": "scripts/test-acceptance.ts",
+      "target": "lib/parser/index.ts",
+      "kind": "import",
+      "specifier": "../lib/parser",
+      "resolved": true
+    },
+    {
+      "id": "scripts/test-acceptance.ts:3:import:node:fs",
+      "source": "scripts/test-acceptance.ts",
+      "target": null,
+      "kind": "import",
+      "specifier": "node:fs",
+      "resolved": false,
+      "unresolvedReason": "builtin_module (node:fs)"
+    }
+  ],
+  "skippedFiles": [
+    {
+      "path": ".agents/skills/supabase/assets/feedback-issue-template.md",
+      "reason": "documentation_or_text"
+    },
+    {
+      "path": ".agents/skills/supabase/CHANGELOG.md",
+      "reason": "documentation_or_text"
+    },
+    {
+      "path": ".agents/skills/supabase/references/skill-feedback.md",
+      "reason": "documentation_or_text"
+    },
+    {
+      "path": ".agents/skills/supabase/SKILL.md",
+      "reason": "documentation_or_text"
+    },
+    {
+      "path": ".agents/skills/supabase-postgres-best-practices/CHANGELOG.md",
+      "reason": "documentation_or_text"
+    },
+    {
+      "path": ".agents/skills/supabase-postgres-best-practices/references/_contributing.md",
+      "reason": "documentation_or_text"
+    },
+    {
+      "path": ".agents/skills/supabase-postgres-best-practices/references/_sections.md",
+      "reason": "documentation_or_text"
+    },
+    {
+      "path": ".agents/skills/supabase-postgres-best-practices/references/_template.md",
+      "reason": "documentation_or_text"
+    },
+    {
+      "path": ".agents/skills/supabase-postgres-best-practices/references/advanced-full-text-search.md",
+      "reason": "documentation_or_text"
+    },
+    {
+      "path": ".agents/skills/supabase-postgres-best-practices/references/advanced-jsonb-indexing.md",
+      "reason": "documentation_or_text"
+    },
+    {
+      "path": ".agents/skills/supabase-postgres-best-practices/references/conn-idle-timeout.md",
+      "reason": "documentation_or_text"
+    },
+    {
+      "path": ".agents/skills/supabase-postgres-best-practices/references/conn-limits.md",
+      "reason": "documentation_or_text"
+    },
+    {
+      "path": ".agents/skills/supabase-postgres-best-practices/references/conn-pooling.md",
+      "reason": "documentation_or_text"
+    },
+    {
+      "path": ".agents/skills/supabase-postgres-best-practices/references/conn-prepared-statements.md",
+      "reason": "documentation_or_text"
+    },
+    {
+      "path": ".agents/skills/supabase-postgres-best-practices/references/data-batch-inserts.md",
+      "reason": "documentation_or_text"
+    },
+    {
+      "path": ".agents/skills/supabase-postgres-best-practices/references/data-n-plus-one.md",
+      "reason": "documentation_or_text"
+    },
+    {
+      "path": ".agents/skills/supabase-postgres-best-practices/references/data-pagination.md",
+      "reason": "documentation_or_text"
+    },
+    {
+      "path": ".agents/skills/supabase-postgres-best-practices/references/data-upsert.md",
+      "reason": "documentation_or_text"
+    },
+    {
+      "path": ".agents/skills/supabase-postgres-best-practices/references/lock-advisory.md",
+      "reason": "package_manager_lockfile"
+    },
+    {
+      "path": ".agents/skills/supabase-postgres-best-practices/references/lock-deadlock-prevention.md",
+      "reason": "package_manager_lockfile"
+    },
+    {
+      "path": ".agents/skills/supabase-postgres-best-practices/references/lock-short-transactions.md",
+      "reason": "package_manager_lockfile"
+    },
+    {
+      "path": ".agents/skills/supabase-postgres-best-practices/references/lock-skip-locked.md",
+      "reason": "package_manager_lockfile"
+    },
+    {
+      "path": ".agents/skills/supabase-postgres-best-practices/references/monitor-explain-analyze.md",
+      "reason": "documentation_or_text"
+    },
+    {
+      "path": ".agents/skills/supabase-postgres-best-practices/references/monitor-pg-stat-statements.md",
+      "reason": "documentation_or_text"
+    },
+    {
+      "path": ".agents/skills/supabase-postgres-best-practices/references/monitor-vacuum-analyze.md",
+      "reason": "documentation_or_text"
+    },
+    {
+      "path": ".agents/skills/supabase-postgres-best-practices/references/query-composite-indexes.md",
+      "reason": "documentation_or_text"
+    },
+    {
+      "path": ".agents/skills/supabase-postgres-best-practices/references/query-covering-indexes.md",
+      "reason": "documentation_or_text"
+    },
+    {
+      "path": ".agents/skills/supabase-postgres-best-practices/references/query-index-types.md",
+      "reason": "documentation_or_text"
+    },
+    {
+      "path": ".agents/skills/supabase-postgres-best-practices/references/query-missing-indexes.md",
+      "reason": "documentation_or_text"
+    },
+    {
+      "path": ".agents/skills/supabase-postgres-best-practices/references/query-partial-indexes.md",
+      "reason": "documentation_or_text"
+    },
+    {
+      "path": ".agents/skills/supabase-postgres-best-practices/references/schema-constraints.md",
+      "reason": "documentation_or_text"
+    },
+    {
+      "path": ".agents/skills/supabase-postgres-best-practices/references/schema-data-types.md",
+      "reason": "documentation_or_text"
+    },
+    {
+      "path": ".agents/skills/supabase-postgres-best-practices/references/schema-foreign-key-indexes.md",
+      "reason": "documentation_or_text"
+    },
+    {
+      "path": ".agents/skills/supabase-postgres-best-practices/references/schema-lowercase-identifiers.md",
+      "reason": "documentation_or_text"
+    },
+    {
+      "path": ".agents/skills/supabase-postgres-best-practices/references/schema-partitioning.md",
+      "reason": "documentation_or_text"
+    },
+    {
+      "path": ".agents/skills/supabase-postgres-best-practices/references/schema-primary-keys.md",
+      "reason": "documentation_or_text"
+    },
+    {
+      "path": ".agents/skills/supabase-postgres-best-practices/references/security-privileges.md",
+      "reason": "documentation_or_text"
+    },
+    {
+      "path": ".agents/skills/supabase-postgres-best-practices/references/security-rls-basics.md",
+      "reason": "documentation_or_text"
+    },
+    {
+      "path": ".agents/skills/supabase-postgres-best-practices/references/security-rls-performance.md",
+      "reason": "documentation_or_text"
+    },
+    {
+      "path": ".agents/skills/supabase-postgres-best-practices/SKILL.md",
+      "reason": "documentation_or_text"
+    },
+    {
+      "path": ".agents/SKILLS.md",
+      "reason": "documentation_or_text"
+    },
+    {
+      "path": ".env.local",
+      "reason": "environment_configuration"
+    },
+    {
+      "path": ".gitignore",
+      "reason": "binary_or_extensionless_file"
+    },
+    {
+      "path": "AGENTS.md",
+      "reason": "documentation_or_text"
+    },
+    {
+      "path": "app/globals.css",
+      "reason": "styling_stylesheet"
+    },
+    {
+      "path": "docs/scope.md",
+      "reason": "documentation_or_text"
+    },
+    {
+      "path": "docs/specs/phase-01.md",
+      "reason": "documentation_or_text"
+    },
+    {
+      "path": "docs/specs/phase-02.md",
+      "reason": "documentation_or_text"
+    },
+    {
+      "path": "docs/specs/phase-03.md",
+      "reason": "documentation_or_text"
+    },
+    {
+      "path": "docs/specs/phase-04.md",
+      "reason": "documentation_or_text"
+    },
+    {
+      "path": "docs/specs/phase-05.md",
+      "reason": "documentation_or_text"
+    },
+    {
+      "path": "docs/specs/phase-06.md",
+      "reason": "documentation_or_text"
+    },
+    {
+      "path": "docs/specs/phase-07.md",
+      "reason": "documentation_or_text"
+    },
+    {
+      "path": "docs/specs/phase-08.md",
+      "reason": "documentation_or_text"
+    },
+    {
+      "path": "docs/specs/phase-09.md",
+      "reason": "documentation_or_text"
+    },
+    {
+      "path": "docs/specs/phase-10.md",
+      "reason": "documentation_or_text"
+    },
+    {
+      "path": "docs/specs/phase-11.md",
+      "reason": "documentation_or_text"
+    },
+    {
+      "path": "docs/specs/phase-12.md",
+      "reason": "documentation_or_text"
+    },
+    {
+      "path": "docs/specs/phase-13.md",
+      "reason": "documentation_or_text"
+    },
+    {
+      "path": "lib/scaffold-data.json",
+      "reason": "json_data_or_configuration"
+    },
+    {
+      "path": "next-env.d.ts",
+      "reason": "type_declaration_file (.d.ts)"
+    },
+    {
+      "path": "package-lock.json",
+      "reason": "package_manager_lockfile"
+    },
+    {
+      "path": "package.json",
+      "reason": "json_data_or_configuration"
+    },
+    {
+      "path": "public/logo.svg",
+      "reason": "media_graphic_asset"
+    },
+    {
+      "path": "public/vercel.svg",
+      "reason": "media_graphic_asset"
+    },
+    {
+      "path": "public/window.svg",
+      "reason": "media_graphic_asset"
+    },
+    {
+      "path": "README.md",
+      "reason": "documentation_or_text"
+    },
+    {
+      "path": "skills-lock.json",
+      "reason": "package_manager_lockfile"
+    },
+    {
+      "path": "supabase/migrations/20261017000000_phase_02_schema.sql",
+      "reason": "database_migration_or_script"
+    },
+    {
+      "path": "supabase/seed.sql",
+      "reason": "database_migration_or_script"
+    },
+    {
+      "path": "tsconfig.json",
+      "reason": "json_data_or_configuration"
+    }
+  ],
+  "coverage": {
+    "totalImports": 90,
+    "resolvedInternal": 38,
+    "externalDependencies": 39,
+    "builtins": 11,
+    "deliberatelyExcluded": 2,
+    "unresolved": 0,
+    "failures": []
+  },
+  "folders": [
+    ".",
+    "app",
+    "app/preview",
+    "app/sign-in/[[...sign-in]]",
+    "app/sign-up/[[...sign-up]]",
+    "app/workspace",
+    "components",
+    "components/canvas",
+    "components/shell",
+    "components/workspace",
+    "lib",
+    "lib/parser",
+    "lib/supabase",
+    "scripts"
+  ],
+  "timestamp": "2026-10-17T11:37:52.514Z"
+}
