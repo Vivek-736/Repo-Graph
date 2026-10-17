@@ -1,26 +1,149 @@
 @import "tailwindcss";
 
+/*
+ * RepoGraph Design Tokens
+ * 4 palette decisions:
+ *   - Accent blue: for interactive & selection
+ *   - Incoming green: what flows into a node
+ *   - Outgoing amber: what flows out of a node
+ *   - Surfaces: near white in light, near black in dark. Greyscale everywhere else.
+ */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #fbfbfb;
+  --surface: #ffffff;
+  --surface-raised: #f4f4f5;
+  --border: #e4e4e7;
+  --foreground: #09090b;
+  --muted: #71717a;
+  
+  --accent-blue: #2563eb;
+  --incoming-green: #16a34a;
+  --outgoing-amber: #d97706;
+}
+
+:root[data-theme="light"],
+html.light {
+  --background: #fbfbfb;
+  --surface: #ffffff;
+  --surface-raised: #f4f4f5;
+  --border: #e4e4e7;
+  --foreground: #09090b;
+  --muted: #71717a;
+  
+  --accent-blue: #2563eb;
+  --incoming-green: #16a34a;
+  --outgoing-amber: #d97706;
+}
+
+:root[data-theme="dark"],
+html.dark {
+  --background: #09090b;
+  --surface: #121215;
+  --surface-raised: #18181b;
+  --border: #27272a;
+  --foreground: #fafafa;
+  --muted: #a1a1aa;
+  
+  --accent-blue: #3b82f6;
+  --incoming-green: #22c55e;
+  --outgoing-amber: #f59e0b;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]):not(.light) {
+    --background: #09090b;
+    --surface: #121215;
+    --surface-raised: #18181b;
+    --border: #27272a;
+    --foreground: #fafafa;
+    --muted: #a1a1aa;
+    
+    --accent-blue: #3b82f6;
+    --incoming-green: #22c55e;
+    --outgoing-amber: #f59e0b;
+  }
 }
 
 @theme inline {
   --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-border: var(--border);
   --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent-blue);
+  --color-incoming: var(--incoming-green);
+  --color-outgoing: var(--outgoing-amber);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
+  min-height: 100vh;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Ensure all buttons have pointer cursor */
+button,
+[role="button"],
+input[type="button"],
+input[type="submit"],
+.cl-userButtonTrigger,
+.cl-organizationSwitcherTrigger {
+  cursor: pointer !important;
+}
+
+/* Clerk Component Theme Overrides to adapt seamlessly to dark & light tokens */
+.cl-card,
+.cl-modalContent,
+.cl-userButtonPopoverCard,
+.cl-organizationSwitcherPopoverCard {
+  background-color: var(--surface) !important;
+  color: var(--foreground) !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.15) !important;
+}
+
+.cl-headerTitle,
+.cl-modalTitle,
+.cl-userButtonPopoverActionButtonText,
+.cl-userPreviewMainIdentifier,
+.cl-organizationSwitcherTrigger,
+.cl-organizationSwitcherPopoverActions,
+.cl-organizationSwitcherPreviewButton {
+  color: var(--foreground) !important;
+}
+
+.cl-headerSubtitle,
+.cl-userPreviewSecondaryIdentifier,
+.cl-userButtonPopoverActionButtonIcon,
+.cl-userButtonPopoverFooter,
+.cl-organizationSwitcherPopoverFooter {
+  color: var(--muted) !important;
+}
+
+.cl-formFieldInput,
+.cl-input {
+  background-color: var(--surface-raised) !important;
+  color: var(--foreground) !important;
+  border: 1px solid var(--border) !important;
+}
+
+.cl-userButtonPopoverActionButton,
+.cl-organizationSwitcherPopoverActionButton {
+  color: var(--foreground) !important;
+}
+
+.cl-userButtonPopoverActionButton:hover,
+.cl-organizationSwitcherPopoverActionButton:hover,
+.cl-organizationSwitcherPreviewButton:hover {
+  background-color: var(--surface-raised) !important;
+}
+
+.cl-internal-b3fm6y,
+.cl-footerActionLink {
+  color: var(--accent-blue) !important;
 }

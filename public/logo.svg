@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <style>
+    .bg { fill: #0ea5e9; }
+    .edge { stroke: rgba(255, 255, 255, 0.65); }
+    .center-node { fill: #ffffff; }
+    .in-node { fill: #ecfdf5; stroke: #10b981; stroke-width: 1.5; }
+    .out-node { fill: #fffbeb; stroke: #f59e0b; stroke-width: 1.5; }
+
+    @media (prefers-color-scheme: dark) {
+      .bg { fill: #0284c7; }
+      .edge { stroke: rgba(255, 255, 255, 0.55); }
+      .center-node { fill: #ffffff; }
+      .in-node { fill: #a7f3d0; stroke: #34d399; stroke-width: 1.5; }
+      .out-node { fill: #fde68a; stroke: #fbbf24; stroke-width: 1.5; }
+    }
+  </style>
+
+  <!-- Sky blue background with rounded corners -->
+  <rect width="32" height="32" rx="9" class="bg" />
+
+  <!-- Graph Dependency Edges -->
+  <path d="M7 16 H16 M16 16 L25 9 M16 16 L25 23" class="edge" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+
+  <!-- Incoming node (left, emerald) -->
+  <circle cx="7" cy="16" r="3" class="in-node" />
+
+  <!-- Outgoing nodes (right, amber/gold) -->
+  <circle cx="25" cy="9" r="3" class="out-node" />
+  <circle cx="25" cy="23" r="3" class="out-node" />
+
+  <!-- Central inspected file node (crisp pure white) -->
+  <circle cx="16" cy="16" r="4.25" class="center-node" />
+</svg>
