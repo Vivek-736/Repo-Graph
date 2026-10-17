@@ -1,7 +1,8 @@
 import * as path from "node:path";
+import * as fs from "node:fs";
+import ts from "typescript";
 import { FrameworkAdapter } from "./adapter";
 import { EdgeKind } from "./types";
-import * as fs from "node:fs";
 
 const NODE_BUILTINS = new Set([
   "assert",
@@ -98,15 +99,12 @@ export function loadPathAliases(rootPath: string, customTsconfig?: string): Path
   }
 
   try {
-    const raw = fs.readFileSync(configFile, "utf-8");
-    // Strip single and multi-line comments from json
-    const sanitized = raw
-      .replace(/\/\*[\s\S]*?\*\//g, "")
-      .replace(/\/\/.*/g, "")
-      .replace(/,\s*([}\]])/g, "$1");
+    const { config, error } = ts.readConfigFile(configFile, ts.sys.readFile);
+    if (error || !config) {
+      return [];
+    }
 
-    const parsed = JSON.parse(sanitized);
-    const compilerOptions = parsed.compilerOptions || {};
+    const compilerOptions = config.compilerOptions || {};
     const baseUrl = compilerOptions.baseUrl || ".";
     const paths = compilerOptions.paths || {};
 
