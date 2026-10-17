@@ -1,33 +1,87 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
-  <style>
-    .bg { fill: #0ea5e9; }
-    .edge { stroke: rgba(255, 255, 255, 0.65); }
-    .center-node { fill: #ffffff; }
-    .in-node { fill: #ecfdf5; stroke: #10b981; stroke-width: 1.5; }
-    .out-node { fill: #fffbeb; stroke: #f59e0b; stroke-width: 1.5; }
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <!-- Sky blue background gradient: rich, deep, refined -->
+    <linearGradient id="sky-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0284c7" />
+      <stop offset="45%" stop-color="#0369a1" />
+      <stop offset="100%" stop-color="#075985" />
+    </linearGradient>
 
-    @media (prefers-color-scheme: dark) {
-      .bg { fill: #0284c7; }
-      .edge { stroke: rgba(255, 255, 255, 0.55); }
-      .center-node { fill: #ffffff; }
-      .in-node { fill: #a7f3d0; stroke: #34d399; stroke-width: 1.5; }
-      .out-node { fill: #fde68a; stroke: #fbbf24; stroke-width: 1.5; }
-    }
-  </style>
+    <!-- Subtle surface glow -->
+    <radialGradient id="center-glow" cx="50%" cy="50%" r="55%">
+      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.35" />
+      <stop offset="100%" stop-color="#38bdf8" stop-opacity="0" />
+    </radialGradient>
 
-  <!-- Sky blue background with rounded corners -->
-  <rect width="32" height="32" rx="9" class="bg" />
+    <!-- Incoming edge gradient (Emerald to White/Cyan) -->
+    <linearGradient id="edge-in" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#10b981" />
+      <stop offset="100%" stop-color="#38bdf8" />
+    </linearGradient>
 
-  <!-- Graph Dependency Edges -->
-  <path d="M7 16 H16 M16 16 L25 9 M16 16 L25 23" class="edge" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+    <!-- Outgoing edge gradient (White/Cyan to Amber) -->
+    <linearGradient id="edge-out" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="100%" stop-color="#f59e0b" />
+    </linearGradient>
 
-  <!-- Incoming node (left, emerald) -->
-  <circle cx="7" cy="16" r="3" class="in-node" />
+    <!-- Subtle drop shadow for floating elements -->
+    <filter id="node-shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="1.5" stdDeviation="2" flood-color="#000000" flood-opacity="0.35" />
+    </filter>
+  </defs>
 
-  <!-- Outgoing nodes (right, amber/gold) -->
-  <circle cx="25" cy="9" r="3" class="out-node" />
-  <circle cx="25" cy="23" r="3" class="out-node" />
+  <!-- Container with subtle inner border -->
+  <rect width="64" height="64" rx="16" fill="url(#sky-bg)" />
+  <rect width="64" height="64" rx="16" fill="url(#center-glow)" />
+  <rect x="0.75" y="0.75" width="62.5" height="62.5" rx="15.25" fill="none" stroke="rgba(255, 255, 255, 0.2)" stroke-width="1.25" />
 
-  <!-- Central inspected file node (crisp pure white) -->
-  <circle cx="16" cy="16" r="4.25" class="center-node" />
+  <!-- Technical Coordinate / Radar Lattice (subtle, developer-tool precision) -->
+  <circle cx="32" cy="32" r="23" stroke="rgba(255, 255, 255, 0.12)" stroke-width="0.75" stroke-dasharray="2 3" fill="none" />
+  <circle cx="32" cy="32" r="14" stroke="rgba(255, 255, 255, 0.1)" stroke-width="0.75" fill="none" />
+
+  <!-- Alignment crosshair ticks -->
+  <line x1="32" y1="5.5" x2="32" y2="8.5" stroke="rgba(255, 255, 255, 0.35)" stroke-width="1" stroke-linecap="round" />
+  <line x1="32" y1="55.5" x2="32" y2="58.5" stroke="rgba(255, 255, 255, 0.35)" stroke-width="1" stroke-linecap="round" />
+  <line x1="5.5" y1="32" x2="8.5" y2="32" stroke="rgba(255, 255, 255, 0.35)" stroke-width="1" stroke-linecap="round" />
+  <line x1="55.5" y1="32" x2="58.5" y2="32" stroke="rgba(255, 255, 255, 0.35)" stroke-width="1" stroke-linecap="round" />
+
+  <!-- Incoming Dependency Curves (Emerald) -->
+  <path d="M 14 22 C 22 22, 23 32, 32 32" stroke="url(#edge-in)" stroke-width="1.75" stroke-linecap="round" fill="none" />
+  <path d="M 14 42 C 22 42, 23 32, 32 32" stroke="url(#edge-in)" stroke-width="1.75" stroke-linecap="round" fill="none" />
+
+  <!-- Outgoing Dependency Curves (Amber / Gold) -->
+  <path d="M 32 32 C 41 32, 42 19, 50 19" stroke="url(#edge-out)" stroke-width="1.75" stroke-linecap="round" fill="none" />
+  <path d="M 32 32 L 50 32" stroke="url(#edge-out)" stroke-width="1.75" stroke-linecap="round" fill="none" />
+  <path d="M 32 32 C 41 32, 42 45, 50 45" stroke="url(#edge-out)" stroke-width="1.75" stroke-linecap="round" fill="none" />
+
+  <!-- Micro Junction indicators on traces -->
+  <circle cx="23" cy="27" r="0.9" fill="#a7f3d0" />
+  <circle cx="23" cy="37" r="0.9" fill="#a7f3d0" />
+  <circle cx="41.5" cy="25.5" r="0.9" fill="#fde68a" />
+  <circle cx="41.5" cy="38.5" r="0.9" fill="#fde68a" />
+
+  <!-- Incoming Nodes (left) -->
+  <!-- Upper Incoming -->
+  <circle cx="14" cy="22" r="4.25" fill="#064e3b" stroke="#10b981" stroke-width="1.25" filter="url(#node-shadow)" />
+  <circle cx="14" cy="22" r="2" fill="#6ee7b7" />
+  <!-- Lower Incoming -->
+  <circle cx="14" cy="42" r="4.25" fill="#064e3b" stroke="#10b981" stroke-width="1.25" filter="url(#node-shadow)" />
+  <circle cx="14" cy="42" r="2" fill="#6ee7b7" />
+
+  <!-- Outgoing Nodes (right) -->
+  <!-- Top Outgoing -->
+  <circle cx="50" cy="19" r="3.75" fill="#78350f" stroke="#f59e0b" stroke-width="1.25" filter="url(#node-shadow)" />
+  <circle cx="50" cy="19" r="1.75" fill="#fde68a" />
+  <!-- Mid Outgoing -->
+  <circle cx="50" cy="32" r="3.75" fill="#78350f" stroke="#f59e0b" stroke-width="1.25" filter="url(#node-shadow)" />
+  <circle cx="50" cy="32" r="1.75" fill="#fde68a" />
+  <!-- Bottom Outgoing -->
+  <circle cx="50" cy="45" r="3.75" fill="#78350f" stroke="#f59e0b" stroke-width="1.25" filter="url(#node-shadow)" />
+  <circle cx="50" cy="45" r="1.75" fill="#fde68a" />
+
+  <!-- Central Inspected File Node (Precision Technical Radar Target) -->
+  <circle cx="32" cy="32" r="8" fill="#0f172a" fill-opacity="0.4" stroke="rgba(255, 255, 255, 0.45)" stroke-width="0.75" stroke-dasharray="2 1.5" />
+  <circle cx="32" cy="32" r="5.25" fill="#0284c7" stroke="#ffffff" stroke-width="1.5" filter="url(#node-shadow)" />
+  <circle cx="32" cy="32" r="2.25" fill="#ffffff" />
 </svg>
