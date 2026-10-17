@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { auth } from "@clerk/nextjs/server";
 import { env } from "@/lib/env";
 
@@ -7,8 +7,14 @@ import { env } from "@/lib/env";
  * Sessions belong exclusively to Clerk (the identity provider).
  * The token travels with every request via Authorization: Bearer <token>
  * so Postgres RLS policies can read identity and organization claims.
+ *
+ * Returns null if Supabase environment variables have not been configured yet.
  */
-export async function createServerDatabaseClient() {
+export async function createServerDatabaseClient(): Promise<SupabaseClient | null> {
+  if (!env.hasSupabaseConfig()) {
+    return null;
+  }
+
   const { getToken } = await auth();
 
   let token: string | null = null;
