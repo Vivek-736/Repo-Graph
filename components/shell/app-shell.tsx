@@ -11,7 +11,7 @@ interface AppShellProps {
 
 export function AppShell({ currentOrgName, currentOrgId, children }: AppShellProps) {
   return (
-    <div className="flex h-screen flex-col bg-background text-foreground overflow-hidden">
+    <div className="flex h-full w-full flex-col bg-background text-foreground overflow-hidden">
       {/* Top Application Bar */}
       <header className="flex h-12 w-full shrink-0 items-center justify-between border-b border-border bg-surface px-4 text-xs">
         {/* Left: Branding & Current Org rendered directly on server */}
