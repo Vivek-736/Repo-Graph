@@ -19,9 +19,13 @@ export interface FolderNodeData extends Record<string, unknown> {
   selectedFilePath: string | null;
   incomingFilePaths: string[];
   outgoingFilePaths: string[];
+  isHovered: boolean;
+  hoveredFilePath: string | null;
   onToggleOpen: (nodeId: string) => void;
   onSelectNode: (nodeId: string) => void;
   onSelectFile: (filePath: string) => void;
+  onHoverNode: (nodeId: string | null) => void;
+  onHoverFile: (filePath: string | null) => void;
 }
 
 export type FolderNodeType = Node<FolderNodeData, "folderNode">;
@@ -44,9 +48,13 @@ export const FolderNode = memo(function FolderNode({ data }: NodeProps<FolderNod
     selectedFilePath,
     incomingFilePaths = [],
     outgoingFilePaths = [],
+    isHovered = false,
+    hoveredFilePath = null,
     onToggleOpen,
     onSelectNode,
     onSelectFile,
+    onHoverNode,
+    onHoverFile,
   } = data;
 
   const visibleFiles = files.slice(0, MAX_VISIBLE_ROWS);
@@ -54,11 +62,16 @@ export const FolderNode = memo(function FolderNode({ data }: NodeProps<FolderNod
 
   const incomingSet = new Set(incomingFilePaths);
   const outgoingSet = new Set(outgoingFilePaths);
+  const isContainingHoveredFile = Boolean(
+    hoveredFilePath && files.some((f) => f.path === hoveredFilePath)
+  );
 
-  // Border and ring styling based on selection & connection
+  // Border and ring styling based on selection, hover & connection
   let borderStyle = "border-border hover:border-muted/50";
   if (isSelected) {
     borderStyle = "border-accent ring-2 ring-accent shadow-md shadow-accent/20";
+  } else if (isHovered || isContainingHoveredFile) {
+    borderStyle = "border-accent ring-2 ring-accent/60 shadow-md shadow-accent/15";
   } else if (isConnected) {
     if (connectionType === "incoming") {
       borderStyle = "border-incoming ring-1 ring-incoming/50 shadow-sm shadow-incoming/10";
@@ -133,12 +146,15 @@ export const FolderNode = memo(function FolderNode({ data }: NodeProps<FolderNod
             const isFileSelected = selectedFilePath === file.path;
             const isCaller = incomingSet.has(file.path);
             const isDependency = outgoingSet.has(file.path);
+            const isRowHovered = hoveredFilePath === file.path;
             const isRowDimmed =
-              selectedFilePath !== null && !isFileSelected && !isCaller && !isDependency;
+              selectedFilePath !== null && !isFileSelected && !isCaller && !isDependency && !isRowHovered;
 
             let rowStyle = "text-foreground hover:bg-surface-raised/70 border border-transparent";
             if (isFileSelected) {
               rowStyle = "bg-accent/20 text-accent font-bold border border-accent/60 shadow-xs";
+            } else if (isRowHovered) {
+              rowStyle = "bg-accent/25 text-foreground font-semibold border border-accent ring-1 ring-accent/60 shadow-xs";
             } else if (isCaller) {
               rowStyle = "bg-incoming/15 text-incoming font-medium border border-incoming/40";
             } else if (isDependency) {
@@ -154,6 +170,8 @@ export const FolderNode = memo(function FolderNode({ data }: NodeProps<FolderNod
                   e.stopPropagation();
                   onSelectFile(file.path);
                 }}
+                onMouseEnter={() => onHoverFile(file.path)}
+                onMouseLeave={() => onHoverFile(null)}
                 className={`relative flex items-center justify-between rounded px-2 py-1 text-[11px] cursor-pointer transition-all duration-150 ${rowStyle}`}
               >
                 {/* Micro Handle on each row for precise edge connections */}
@@ -213,6 +231,8 @@ export const FolderNode = memo(function FolderNode({ data }: NodeProps<FolderNod
         e.stopPropagation();
         onToggleOpen(id);
       }}
+      onMouseEnter={() => onHoverNode(id)}
+      onMouseLeave={() => onHoverNode(null)}
       className={`relative flex flex-col justify-center rounded-md border bg-surface/95 px-3 py-1.5 shadow-xs font-mono text-xs transition-all duration-200 backdrop-blur-xs select-none cursor-pointer ${borderStyle} ${
         isDimmed ? "opacity-15 pointer-events-none filter grayscale" : "opacity-100"
       }`}

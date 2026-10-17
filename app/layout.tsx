@@ -57,7 +57,7 @@ export default function RootLayout({
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
-      <body className="min-h-full flex flex-col bg-background text-foreground">
+      <body className="h-full flex flex-col bg-background text-foreground overflow-hidden">
         <ClerkProvider
           appearance={{
             variables: {

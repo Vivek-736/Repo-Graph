@@ -25,8 +25,10 @@ interface GraphCanvasProps {
   edges: ParsedEdge[];
   selectedNodeId: string | null;
   selectedFilePath: string | null;
+  hoveredTarget?: string | null;
   onSelectNode: (nodeId: string | null) => void;
   onSelectFile: (filePath: string | null) => void;
+  onHoverTarget?: (target: string | null) => void;
 }
 
 const MAX_VISIBLE_ROWS = 8;
@@ -108,8 +110,10 @@ function InnerGraphCanvas({
   edges,
   selectedNodeId,
   selectedFilePath,
+  hoveredTarget = null,
   onSelectNode,
   onSelectFile,
+  onHoverTarget = () => {},
 }: GraphCanvasProps) {
   const [openNodeIds, setOpenNodeIds] = useState<Set<string>>(new Set());
   const { fitView, getZoom } = useReactFlow();
@@ -236,6 +240,10 @@ function InnerGraphCanvas({
         else if (isOut) connectionType = "outgoing";
       }
 
+      const isNodeHovered = hoveredTarget === node.id;
+      const hoveredFilePath =
+        hoveredTarget && files.some((f) => f.path === hoveredTarget) ? hoveredTarget : null;
+
       return {
         id: node.id,
         type: "folderNode",
@@ -257,9 +265,13 @@ function InnerGraphCanvas({
           selectedFilePath,
           incomingFilePaths: highlightedConnections.incomingFilePaths,
           outgoingFilePaths: highlightedConnections.outgoingFilePaths,
+          isHovered: isNodeHovered,
+          hoveredFilePath,
           onToggleOpen: handleToggleOpen,
           onSelectNode,
           onSelectFile,
+          onHoverNode: onHoverTarget,
+          onHoverFile: onHoverTarget,
         },
       };
     });
@@ -271,10 +283,13 @@ function InnerGraphCanvas({
     selectedFilePath,
     hasSelection,
     highlightedConnections,
+    hoveredTarget,
+    files,
     fileToNodeId,
     handleToggleOpen,
     onSelectNode,
     onSelectFile,
+    onHoverTarget,
   ]);
 
   // Build React Flow Edges (connecting either to rows or to node bodies)
@@ -287,6 +302,7 @@ function InnerGraphCanvas({
       targetHandle: string;
       hasIncomingHighlight: boolean;
       hasOutgoingHighlight: boolean;
+      hasHoverHighlight: boolean;
     }
 
     const groupMap = new Map<string, EdgeGroup>();
@@ -332,6 +348,14 @@ function InnerGraphCanvas({
         if (srcNode === selectedNodeId && tgtNode !== selectedNodeId) isOutgoing = true;
       }
 
+      const isHoverMatch = Boolean(
+        hoveredTarget &&
+          (edge.source === hoveredTarget ||
+            edge.target === hoveredTarget ||
+            srcNode === hoveredTarget ||
+            tgtNode === hoveredTarget)
+      );
+
       if (!groupMap.has(key)) {
         groupMap.set(key, {
           source: srcNode,
@@ -340,11 +364,13 @@ function InnerGraphCanvas({
           targetHandle,
           hasIncomingHighlight: isIncoming,
           hasOutgoingHighlight: isOutgoing,
+          hasHoverHighlight: isHoverMatch,
         });
       } else {
         const existing = groupMap.get(key)!;
         if (isIncoming) existing.hasIncomingHighlight = true;
         if (isOutgoing) existing.hasOutgoingHighlight = true;
+        if (isHoverMatch) existing.hasHoverHighlight = true;
       }
     }
 
@@ -353,13 +379,18 @@ function InnerGraphCanvas({
     for (const [key, group] of groupMap.entries()) {
       const isIncoming = group.hasIncomingHighlight;
       const isOutgoing = group.hasOutgoingHighlight;
-      const isDimmed = hasSelection && !isIncoming && !isOutgoing;
+      const isHover = group.hasHoverHighlight;
+      const isDimmed = hasSelection && !isIncoming && !isOutgoing && !isHover;
 
       let stroke = "rgba(100, 116, 139, 0.45)";
       let strokeWidth = 1.25;
       let zIndex = 5;
 
-      if (isIncoming) {
+      if (isHover) {
+        stroke = isIncoming ? "#10b981" : isOutgoing ? "#f59e0b" : "#38bdf8";
+        strokeWidth = 3.5;
+        zIndex = 50;
+      } else if (isIncoming) {
         stroke = "#10b981"; // Incoming emerald
         strokeWidth = 2.5;
         zIndex = 30;
@@ -381,7 +412,7 @@ function InnerGraphCanvas({
         targetHandle: group.targetHandle,
         type: "bezier",
         zIndex,
-        animated: isIncoming || isOutgoing,
+        animated: isIncoming || isOutgoing || isHover,
         style: {
           stroke,
           strokeWidth,
@@ -392,7 +423,16 @@ function InnerGraphCanvas({
     }
 
     return list;
-  }, [edges, fileToNodeId, openNodeIds, selectedFilePath, selectedNodeId, hasSelection]);
+  }, [
+    edges,
+    fileToNodeId,
+    openNodeIds,
+    selectedFilePath,
+    selectedNodeId,
+    hasSelection,
+    hoveredTarget,
+    foldedDirs,
+  ]);
 
   // Refitting on open: ONLY EVER ZOOM OUT, NEVER IN
   useEffect(() => {
