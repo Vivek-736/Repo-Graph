@@ -16,6 +16,7 @@ export interface FileCategory {
 
 interface CanvasShellProps {
   data: ParserResult;
+  analysisId?: string;
 }
 
 /**
@@ -52,7 +53,7 @@ export function categorizeFiles(
   });
 }
 
-export function CanvasShell({ data }: CanvasShellProps) {
+export function CanvasShell({ data, analysisId }: CanvasShellProps) {
   const { files, edges, stats, rootPath } = data;
   const frameworkId = (data.framework as FrameworkId) || "generic";
 
@@ -228,6 +229,7 @@ export function CanvasShell({ data }: CanvasShellProps) {
         onSelectFile={setSelectedFilePath}
         onHoverTarget={setHoveredTarget}
         onActiveWalkChange={setActiveWalk}
+        analysisId={analysisId}
       />
     </div>
   );

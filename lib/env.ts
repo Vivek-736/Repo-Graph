@@ -26,10 +26,32 @@ export const env = {
     return process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
   },
 
+  // Gemini & LangSmith
+  get GEMINI_API_KEY(): string {
+    return process.env.GEMINI_API_KEY || "";
+  },
+  get LANGSMITH_ENDPOINT(): string {
+    return process.env.LANGSMITH_ENDPOINT || "https://api.smith.langchain.com";
+  },
+  get LANGSMITH_API_KEY(): string {
+    return process.env.LANGSMITH_API_KEY || "";
+  },
+  get LANGSMITH_PROJECT(): string {
+    return process.env.LANGSMITH_PROJECT || "repo-graph";
+  },
+
   hasSupabaseConfig(): boolean {
     return Boolean(
       process.env.NEXT_PUBLIC_SUPABASE_URL &&
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
     );
+  },
+
+  hasGeminiConfig(): boolean {
+    return Boolean(process.env.GEMINI_API_KEY);
+  },
+
+  hasLangSmithConfig(): boolean {
+    return Boolean(process.env.LANGSMITH_API_KEY);
   },
 };
