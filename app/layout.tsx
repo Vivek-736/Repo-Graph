@@ -63,9 +63,11 @@ export default function RootLayout({
         <Suspense fallback={null}>
           <GlobalLoader />
         </Suspense>
-        <ClerkThemeProvider>
-          {children}
-        </ClerkThemeProvider>
+        <Suspense fallback={null}>
+          <ClerkThemeProvider>
+            {children}
+          </ClerkThemeProvider>
+        </Suspense>
       </body>
     </html>
   );

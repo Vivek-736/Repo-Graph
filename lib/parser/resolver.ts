@@ -114,7 +114,7 @@ export function loadPathAliases(rootPath: string, customTsconfig?: string): Path
         const prefix = key.replace(/\*$/, "");
         const targets = targetList.map((t) => {
           const cleanTarget = String(t).replace(/\*$/, "");
-          return path.join(baseUrl, cleanTarget).replace(/\\/g, "/");
+          return path.join(/*turbopackIgnore: true*/ baseUrl, cleanTarget).replace(/\\/g, "/");
         });
         rules.push({ prefix, targets });
       }
