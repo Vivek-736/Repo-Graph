@@ -77,9 +77,9 @@ export class NextJsAdapter implements FrameworkAdapter {
 
     // Config files
     const configExists =
-      fs.existsSync(path.join(rootPath, "next.config.js")) ||
-      fs.existsSync(path.join(rootPath, "next.config.mjs")) ||
-      fs.existsSync(path.join(rootPath, "next.config.ts"));
+      fs.existsSync(path.join(/*turbopackIgnore: true*/ rootPath, "next.config.js")) ||
+      fs.existsSync(path.join(/*turbopackIgnore: true*/ rootPath, "next.config.mjs")) ||
+      fs.existsSync(path.join(/*turbopackIgnore: true*/ rootPath, "next.config.ts"));
 
     if (configExists) {
       return true;
