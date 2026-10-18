@@ -60,7 +60,7 @@ export default function RootLayout({
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
-      <body className="h-full flex flex-col bg-background text-foreground overflow-hidden">
+      <body className="min-h-full flex flex-col bg-background text-foreground">
         <Suspense fallback={null}>
           <GlobalLoader />
         </Suspense>

@@ -70,15 +70,14 @@ html.dark {
   --font-mono: var(--font-geist-mono);
 }
 
-html,
-body {
-  height: 100%;
-  overflow: hidden;
-  margin: 0;
-  padding: 0;
+html {
+  min-height: 100%;
 }
 
 body {
+  min-height: 100%;
+  margin: 0;
+  padding: 0;
   background-color: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
@@ -119,7 +118,6 @@ input[type="submit"],
   cursor: pointer !important;
 }
 
-/* Clerk Component Theme Overrides to adapt seamlessly to dark & light tokens */
 .cl-card,
 .cl-modalContent,
 .cl-userButtonPopoverCard,
