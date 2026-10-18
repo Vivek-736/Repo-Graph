@@ -1,14 +1,22 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useTransition, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { startAnalysis } from "@/lib/actions/analysis";
 
 export function RepoForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [url, setUrl] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+
+  useEffect(() => {
+    const param = searchParams.get("repoUrl");
+    if (param && !url) {
+      setUrl(param);
+    }
+  }, [searchParams, url]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
