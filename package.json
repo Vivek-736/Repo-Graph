@@ -10,10 +10,12 @@
   },
   "dependencies": {
     "@clerk/nextjs": "^7.9.16",
+    "@google/genai": "^2.30.0",
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.118.0",
     "@xyflow/react": "^12.12.0",
     "dagre": "^0.8.5",
+    "langsmith": "^0.11.0",
     "next": "16.4.0",
     "react": "19.3.0",
     "react-dom": "19.3.0",

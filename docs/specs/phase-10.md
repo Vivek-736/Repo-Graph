@@ -4,8 +4,9 @@
 
 ## Build
 
-- One place in the entire codebase that constructs the AI client, wrapped so
-  every call through it is traced.
+- One place in the entire codebase that constructs the AI client using Gemini
+  (pinned to the Gemini 3 Flash model), wrapped so every call through it is
+  traced.
 - **Explaining a file**, written from that file's real neighbours — the things
   it imports and the things importing it, all of them handed to the model.
 - **Explaining a folded folder**, which is a different question: what's in here,
@@ -31,8 +32,9 @@
 - **The cache read happens inside the traced call**, not before it. A cache hit
   must appear in the traces as a recorded run containing no model call —
   otherwise there's no way to tell a working cache from a broken one.
-- Model versions are pinned exactly, never to a moving alias, and the model
-  name is part of the cache key. Re-pinning one invalidates only its own cache.
+- Model versions are pinned exactly (Gemini 3 Flash), never to a moving
+  alias, and the model name is part of the cache key. Re-pinning one invalidates
+  only its own cache.
 - Classification may only answer with roles that are _not_ structural. It may
   say service, repository, model, util, config, component or hook. It may never
   say page, route or controller — those decide the route table and the

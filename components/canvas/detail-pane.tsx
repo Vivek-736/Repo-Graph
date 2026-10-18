@@ -10,11 +10,14 @@ import {
   WalkDirection,
   INSIGHT_SENTENCES,
 } from "@/lib/parser/graph";
-import { 
-  getTaxonomy, 
-  classifyPathRoleFallback, 
-  FrameworkId 
+import {
+  getTaxonomy,
+  classifyPathRoleFallback,
+  FrameworkId
 } from "@/lib/taxonomy";
+import { ExplanationPanel } from "./explanation-panel";
+import { ExplanationResponse } from "@/lib/actions/explain";
+import { classifyUnmatchedFiles } from "@/lib/actions/classify";
 
 interface DetailPaneProps {
   data: ParserResult;
@@ -25,13 +28,11 @@ interface DetailPaneProps {
   onSelectFile: (filePath: string | null) => void;
   onHoverTarget: (target: string | null) => void;
   onActiveWalkChange?: (walk: { paths: string[]; direction: WalkDirection | null }) => void;
+  analysisId?: string;
 }
 
 export type DetailTab = "structure" | "routes" | "explanation";
 
-/**
- * Returns badge styling for HTTP methods.
- */
 export function getMethodBadge(method: string): string {
   switch (method.toUpperCase()) {
     case "GET":
@@ -77,11 +78,17 @@ export function DetailPane({
   onSelectFile,
   onHoverTarget,
   onActiveWalkChange,
+  analysisId,
 }: DetailPaneProps) {
   const { files, edges, stats, rootPath } = data;
 
   // Tab state persists across selection changes (Acceptance Check 4)
   const [activeTab, setActiveTab] = useState<DetailTab>("structure");
+
+  // Phase 10: In-memory explanation cache (persists as user switches selections)
+  const [explanationsCache, setExplanationsCache] = useState<Record<string, ExplanationResponse>>({});
+  const [isClassifying, setIsClassifying] = useState(false);
+  const [classificationStatus, setClassificationStatus] = useState<string | null>(null);
 
   // Phase 6: Transitive Walk state (Blast radius & Dependency chain)
   const [activeWalk, setActiveWalk] = useState<WalkDirection | null>(null);
@@ -227,22 +234,20 @@ export function DetailPane({
           <button
             type="button"
             onClick={() => setActiveTab("structure")}
-            className={`rounded px-2 py-0.5 text-xs font-semibold cursor-pointer transition-colors ${
-              activeTab === "structure"
-                ? "bg-surface-raised text-foreground border border-border"
-                : "text-muted hover:text-foreground border border-transparent"
-            }`}
+            className={`rounded px-2 py-0.5 text-xs font-semibold cursor-pointer transition-colors ${activeTab === "structure"
+              ? "bg-surface-raised text-foreground border border-border"
+              : "text-muted hover:text-foreground border border-transparent"
+              }`}
           >
             Structure
           </button>
           <button
             type="button"
             onClick={() => setActiveTab("routes")}
-            className={`rounded px-2 py-0.5 text-xs font-semibold cursor-pointer transition-colors flex items-center gap-1 ${
-              activeTab === "routes"
-                ? "bg-surface-raised text-foreground border border-border"
-                : "text-muted hover:text-foreground border border-transparent"
-            }`}
+            className={`rounded px-2 py-0.5 text-xs font-semibold cursor-pointer transition-colors flex items-center gap-1 ${activeTab === "routes"
+              ? "bg-surface-raised text-foreground border border-border"
+              : "text-muted hover:text-foreground border border-transparent"
+              }`}
           >
             <span>Routes</span>
             {routes.length > 0 && (
@@ -251,17 +256,25 @@ export function DetailPane({
               </span>
             )}
           </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab("explanation")}
-            className={`rounded px-2 py-0.5 text-xs font-semibold cursor-pointer transition-colors ${
-              activeTab === "explanation"
-                ? "bg-surface-raised text-foreground border border-border"
-                : "text-muted hover:text-foreground border border-transparent"
-            }`}
-          >
-            AI
-          </button>
+          {(() => {
+            const currentTargetKey = selectedFilePath ? `file:${selectedFilePath}` : selectedNodeId ? `folder:${selectedNodeId}` : null;
+            const isCached = Boolean(currentTargetKey && explanationsCache[currentTargetKey]);
+            return (
+              <button
+                type="button"
+                onClick={() => setActiveTab("explanation")}
+                className={`rounded px-2 py-0.5 text-xs font-semibold cursor-pointer transition-colors flex items-center gap-1.5 ${activeTab === "explanation"
+                  ? "bg-surface-raised text-foreground border border-border"
+                  : "text-muted hover:text-foreground border border-transparent"
+                  }`}
+              >
+                <span>AI</span>
+                {isCached && (
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" title="Explanation cached in memory" />
+                )}
+              </button>
+            );
+          })()}
         </div>
 
         {hasSelection && (
@@ -404,10 +417,40 @@ export function DetailPane({
                 <span className="text-muted">Internal Edges:</span>
                 <span className="text-foreground font-medium">{data.coverage.resolvedInternal}</span>
               </div>
-              <div className="flex justify-between">
+              <div className="flex justify-between items-center">
                 <span className="text-muted">Unidentified Files:</span>
                 <span className="text-muted font-medium">{unclassifiedCount}</span>
               </div>
+              {unclassifiedCount > 0 && analysisId && (
+                <div className="pt-1 border-t border-border/40">
+                  <button
+                    type="button"
+                    disabled={isClassifying}
+                    onClick={async () => {
+                      setIsClassifying(true);
+                      setClassificationStatus(null);
+                      try {
+                        const res = await classifyUnmatchedFiles(analysisId);
+                        if (res.success) {
+                          setClassificationStatus(`Classified ${res.classifiedCount} files into functional roles.`);
+                        } else {
+                          setClassificationStatus(`Classification failed: ${res.error}`);
+                        }
+                      } finally {
+                        setIsClassifying(false);
+                      }
+                    }}
+                    className="w-full rounded border border-accent/40 bg-accent/10 px-2 py-1 text-[10px] text-accent hover:bg-accent/20 cursor-pointer font-semibold transition-colors disabled:opacity-50"
+                  >
+                    {isClassifying ? "Classifying with Gemini 3 Flash..." : `Classify ${unclassifiedCount} Files with Gemini`}
+                  </button>
+                  {classificationStatus && (
+                    <div className="text-[10px] text-accent mt-1 text-center font-sans">
+                      {classificationStatus}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Ranked List 1: What the repository leans on most (fan-in DESC) */}
@@ -425,11 +468,10 @@ export function DetailPane({
                       onClick={() => onSelectFile(file.path)}
                       onMouseEnter={() => onHoverTarget(file.path)}
                       onMouseLeave={() => onHoverTarget(null)}
-                      className={`flex items-center justify-between rounded border p-1.5 text-[11px] cursor-pointer transition-colors ${
-                        isHovered
-                          ? "border-incoming bg-incoming/10 text-foreground"
-                          : "border-border/70 bg-surface-raised/40 text-foreground/90 hover:border-incoming/40 hover:bg-surface-raised"
-                      }`}
+                      className={`flex items-center justify-between rounded border p-1.5 text-[11px] cursor-pointer transition-colors ${isHovered
+                        ? "border-incoming bg-incoming/10 text-foreground"
+                        : "border-border/70 bg-surface-raised/40 text-foreground/90 hover:border-incoming/40 hover:bg-surface-raised"
+                        }`}
                       title={file.path}
                     >
                       <span className="truncate pr-2 font-medium">
@@ -459,11 +501,10 @@ export function DetailPane({
                       onClick={() => onSelectFile(file.path)}
                       onMouseEnter={() => onHoverTarget(file.path)}
                       onMouseLeave={() => onHoverTarget(null)}
-                      className={`flex items-center justify-between rounded border p-1.5 text-[11px] cursor-pointer transition-colors ${
-                        isHovered
-                          ? "border-accent bg-accent/10 text-foreground"
-                          : "border-border/70 bg-surface-raised/40 text-foreground/90 hover:border-accent/40 hover:bg-surface-raised"
-                      }`}
+                      className={`flex items-center justify-between rounded border p-1.5 text-[11px] cursor-pointer transition-colors ${isHovered
+                        ? "border-accent bg-accent/10 text-foreground"
+                        : "border-border/70 bg-surface-raised/40 text-foreground/90 hover:border-accent/40 hover:bg-surface-raised"
+                        }`}
                       title={file.path}
                     >
                       <span className="truncate pr-2 font-medium">
@@ -647,51 +688,51 @@ export function DetailPane({
                   </div>
                 </div>
               )}
-            {/* Routes preview in resting view */}
-            {routes.length > 0 && (
-              <div className="space-y-2 pt-2 border-t border-border">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] uppercase font-semibold text-muted tracking-wider">
-                    Declared Routes ({routes.length})
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab("routes")}
-                    className="text-[10px] text-accent hover:underline cursor-pointer"
-                  >
-                    View all in Routes tab →
-                  </button>
-                </div>
-                <div className="space-y-1">
-                  {routes.slice(0, 5).map((rt, idx) => (
-                    <div
-                      key={idx}
-                      onClick={() => onSelectFile(rt.file)}
-                      onMouseEnter={() => onHoverTarget(rt.file)}
-                      onMouseLeave={() => onHoverTarget(null)}
-                      className="flex items-center justify-between rounded border border-border/70 bg-surface-raised/40 p-1.5 text-[11px] cursor-pointer hover:border-accent/60 transition-colors"
-                      title={rt.file}
+              {/* Routes preview in resting view */}
+              {routes.length > 0 && (
+                <div className="space-y-2 pt-2 border-t border-border">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] uppercase font-semibold text-muted tracking-wider">
+                      Declared Routes ({routes.length})
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab("routes")}
+                      className="text-[10px] text-accent hover:underline cursor-pointer"
                     >
-                      <div className="flex items-center gap-1.5 truncate pr-2">
-                        <span
-                          className={`px-1 py-0.2 rounded text-[9px] font-bold ${getMethodBadge(
-                            rt.method
-                          )}`}
-                        >
-                          {rt.method}
-                        </span>
-                        <span className="font-mono text-foreground font-semibold truncate" title={rt.path}>
-                          {rt.path}
+                      View all in Routes tab →
+                    </button>
+                  </div>
+                  <div className="space-y-1">
+                    {routes.slice(0, 5).map((rt, idx) => (
+                      <div
+                        key={idx}
+                        onClick={() => onSelectFile(rt.file)}
+                        onMouseEnter={() => onHoverTarget(rt.file)}
+                        onMouseLeave={() => onHoverTarget(null)}
+                        className="flex items-center justify-between rounded border border-border/70 bg-surface-raised/40 p-1.5 text-[11px] cursor-pointer hover:border-accent/60 transition-colors"
+                        title={rt.file}
+                      >
+                        <div className="flex items-center gap-1.5 truncate pr-2">
+                          <span
+                            className={`px-1 py-0.2 rounded text-[9px] font-bold ${getMethodBadge(
+                              rt.method
+                            )}`}
+                          >
+                            {rt.method}
+                          </span>
+                          <span className="font-mono text-foreground font-semibold truncate" title={rt.path}>
+                            {rt.path}
+                          </span>
+                        </div>
+                        <span className="text-[10px] text-muted truncate max-w-[80px]">
+                          {rt.file.split("/").pop()}
                         </span>
                       </div>
-                      <span className="text-[10px] text-muted truncate max-w-[80px]">
-                        {rt.file.split("/").pop()}
-                      </span>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
             </div>
           </div>
         )}
@@ -720,6 +761,18 @@ export function DetailPane({
                 {selectedFile.path}
               </h4>
               <p className="text-[11px] text-muted mt-0.5">folder: {selectedFile.folder}</p>
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("explanation")}
+                  className="w-full flex items-center justify-center gap-1.5 rounded border border-accent/40 bg-accent/15 px-2.5 py-1.5 text-xs font-semibold text-accent hover:bg-accent/25 hover:border-accent cursor-pointer transition-colors"
+                >
+                  <span>Explain File</span>
+                  {explanationsCache[`file:${selectedFile.path}`] && (
+                    <span className="rounded bg-accent/20 px-1 py-0.2 text-[9px] text-accent">⚡ Cached</span>
+                  )}
+                </button>
+              </div>
             </div>
 
             {/* Declared Routes in this file */}
@@ -782,11 +835,10 @@ export function DetailPane({
                 <button
                   type="button"
                   onClick={() => setActiveWalk(activeWalk === "upstream" ? null : "upstream")}
-                  className={`rounded px-2.5 py-1.5 text-xs font-semibold border cursor-pointer transition-all flex items-center justify-center gap-1.5 ${
-                    activeWalk === "upstream"
-                      ? "bg-incoming/20 text-incoming border-incoming/60 ring-2 ring-incoming/40 shadow-xs"
-                      : "bg-surface-raised text-foreground border-border hover:border-incoming/50 hover:bg-surface-raised/80"
-                  }`}
+                  className={`rounded px-2.5 py-1.5 text-xs font-semibold border cursor-pointer transition-all flex items-center justify-center gap-1.5 ${activeWalk === "upstream"
+                    ? "bg-incoming/20 text-incoming border-incoming/60 ring-2 ring-incoming/40 shadow-xs"
+                    : "bg-surface-raised text-foreground border-border hover:border-incoming/50 hover:bg-surface-raised/80"
+                    }`}
                   title="What breaks if this file changes (2 levels deep)"
                 >
                   <span>💥</span>
@@ -795,11 +847,10 @@ export function DetailPane({
                 <button
                   type="button"
                   onClick={() => setActiveWalk(activeWalk === "downstream" ? null : "downstream")}
-                  className={`rounded px-2.5 py-1.5 text-xs font-semibold border cursor-pointer transition-all flex items-center justify-center gap-1.5 ${
-                    activeWalk === "downstream"
-                      ? "bg-outgoing/20 text-outgoing border-outgoing/60 ring-2 ring-outgoing/40 shadow-xs"
-                      : "bg-surface-raised text-foreground border-border hover:border-outgoing/50 hover:bg-surface-raised/80"
-                  }`}
+                  className={`rounded px-2.5 py-1.5 text-xs font-semibold border cursor-pointer transition-all flex items-center justify-center gap-1.5 ${activeWalk === "downstream"
+                    ? "bg-outgoing/20 text-outgoing border-outgoing/60 ring-2 ring-outgoing/40 shadow-xs"
+                    : "bg-surface-raised text-foreground border-border hover:border-outgoing/50 hover:bg-surface-raised/80"
+                    }`}
                   title="Everything this file needs (2 levels deep)"
                 >
                   <span>⛓</span>
@@ -813,9 +864,8 @@ export function DetailPane({
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1.5">
                       <span
-                        className={`text-[11px] font-bold uppercase tracking-wider ${
-                          activeWalk === "upstream" ? "text-incoming" : "text-outgoing"
-                        }`}
+                        className={`text-[11px] font-bold uppercase tracking-wider ${activeWalk === "upstream" ? "text-incoming" : "text-outgoing"
+                          }`}
                       >
                         {activeWalk === "upstream" ? `Blast Radius` : `Dependency Chain`}
                       </span>
@@ -849,13 +899,12 @@ export function DetailPane({
                             onClick={() => onSelectFile(step.path)}
                             onMouseEnter={() => onHoverTarget(step.path)}
                             onMouseLeave={() => onHoverTarget(null)}
-                            className={`flex items-center justify-between rounded border p-1.5 text-[11px] cursor-pointer transition-all ${
-                              isHovered
-                                ? activeWalk === "upstream"
-                                  ? "border-incoming bg-incoming/15 text-foreground ring-1 ring-incoming/50"
-                                  : "border-outgoing bg-outgoing/15 text-foreground ring-1 ring-outgoing/50"
-                                : "border-border/80 bg-surface/60 text-foreground hover:bg-surface-raised"
-                            }`}
+                            className={`flex items-center justify-between rounded border p-1.5 text-[11px] cursor-pointer transition-all ${isHovered
+                              ? activeWalk === "upstream"
+                                ? "border-incoming bg-incoming/15 text-foreground ring-1 ring-incoming/50"
+                                : "border-outgoing bg-outgoing/15 text-foreground ring-1 ring-outgoing/50"
+                              : "border-border/80 bg-surface/60 text-foreground hover:bg-surface-raised"
+                              }`}
                             title={`Click to select ${step.path} (${step.depth === 1 ? "1 hop" : "2 hops"})`}
                           >
                             <div className="truncate pr-2">
@@ -863,13 +912,12 @@ export function DetailPane({
                               <div className="text-[9px] text-muted truncate">{step.path}</div>
                             </div>
                             <span
-                              className={`rounded px-1.5 py-0.2 text-[9px] font-bold shrink-0 border ${
-                                step.depth === 1
-                                  ? activeWalk === "upstream"
-                                    ? "bg-incoming/15 text-incoming border-incoming/30"
-                                    : "bg-outgoing/15 text-outgoing border-outgoing/30"
-                                  : "bg-surface text-muted border-border"
-                              }`}
+                              className={`rounded px-1.5 py-0.2 text-[9px] font-bold shrink-0 border ${step.depth === 1
+                                ? activeWalk === "upstream"
+                                  ? "bg-incoming/15 text-incoming border-incoming/30"
+                                  : "bg-outgoing/15 text-outgoing border-outgoing/30"
+                                : "bg-surface text-muted border-border"
+                                }`}
                             >
                               {step.depth === 1 ? "direct" : "2 hops"}
                             </span>
@@ -921,11 +969,10 @@ export function DetailPane({
                         onClick={() => onSelectFile(edge.source)}
                         onMouseEnter={() => onHoverTarget(edge.source)}
                         onMouseLeave={() => onHoverTarget(null)}
-                        className={`rounded border p-1.5 text-[11px] cursor-pointer transition-all ${
-                          isHovered
-                            ? "border-incoming bg-incoming/15 text-foreground ring-1 ring-incoming/50"
-                            : "border-border bg-surface-raised/60 text-foreground hover:border-incoming/50 hover:bg-surface-raised"
-                        }`}
+                        className={`rounded border p-1.5 text-[11px] cursor-pointer transition-all ${isHovered
+                          ? "border-incoming bg-incoming/15 text-foreground ring-1 ring-incoming/50"
+                          : "border-border bg-surface-raised/60 text-foreground hover:border-incoming/50 hover:bg-surface-raised"
+                          }`}
                         title={`Click to navigate to ${edge.source}`}
                       >
                         <div className="truncate font-semibold">{edge.source.split("/").pop()}</div>
@@ -961,11 +1008,10 @@ export function DetailPane({
                         onClick={() => edge.target && onSelectFile(edge.target)}
                         onMouseEnter={() => edge.target && onHoverTarget(edge.target)}
                         onMouseLeave={() => onHoverTarget(null)}
-                        className={`rounded border p-1.5 text-[11px] cursor-pointer transition-all ${
-                          isHovered
-                            ? "border-outgoing bg-outgoing/15 text-foreground ring-1 ring-outgoing/50"
-                            : "border-border bg-surface-raised/60 text-foreground hover:border-outgoing/50 hover:bg-surface-raised"
-                        }`}
+                        className={`rounded border p-1.5 text-[11px] cursor-pointer transition-all ${isHovered
+                          ? "border-outgoing bg-outgoing/15 text-foreground ring-1 ring-outgoing/50"
+                          : "border-border bg-surface-raised/60 text-foreground hover:border-outgoing/50 hover:bg-surface-raised"
+                          }`}
                         title={`Click to navigate to ${targetPath}`}
                       >
                         <div className="truncate font-semibold">{targetPath.split("/").pop()}</div>
@@ -994,6 +1040,18 @@ export function DetailPane({
                 {selectedNodeId}
               </h4>
               <p className="text-[11px] text-muted mt-0.5">{selectedNodeFiles.length} files contained</p>
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("explanation")}
+                  className="w-full flex items-center justify-center gap-1.5 rounded border border-accent/40 bg-accent/15 px-2.5 py-1.5 text-xs font-semibold text-accent hover:bg-accent/25 hover:border-accent cursor-pointer transition-colors"
+                >
+                  <span>Explain Folder</span>
+                  {selectedNodeId && explanationsCache[`folder:${selectedNodeId}`] && (
+                    <span className="rounded bg-accent/20 px-1 py-0.2 text-[9px] text-accent">⚡ Cached</span>
+                  )}
+                </button>
+              </div>
             </div>
 
             {/* Metrics */}
@@ -1042,11 +1100,10 @@ export function DetailPane({
                       onClick={() => onSelectFile(f.path)}
                       onMouseEnter={() => onHoverTarget(f.path)}
                       onMouseLeave={() => onHoverTarget(null)}
-                      className={`flex items-center justify-between rounded border p-1.5 text-[11px] cursor-pointer transition-colors ${
-                        isHovered
-                          ? "border-accent bg-accent/10 text-foreground"
-                          : "border-border/70 bg-surface-raised/50 text-foreground hover:border-accent hover:bg-surface-raised"
-                      }`}
+                      className={`flex items-center justify-between rounded border p-1.5 text-[11px] cursor-pointer transition-colors ${isHovered
+                        ? "border-accent bg-accent/10 text-foreground"
+                        : "border-border/70 bg-surface-raised/50 text-foreground hover:border-accent hover:bg-surface-raised"
+                        }`}
                       title={`Click to select ${f.path}`}
                     >
                       <span className="truncate pr-2 font-medium">{f.path.split("/").pop()}</span>
@@ -1062,21 +1119,18 @@ export function DetailPane({
         {/* ------------------------------------------------------------- */}
         {/* CASE 4: EXPLANATION TAB                                       */}
         {/* ------------------------------------------------------------- */}
-        {hasSelection && activeTab === "explanation" && (
-          <div className="flex flex-col items-center justify-center p-6 text-center text-muted min-h-[300px]">
-            <div className="h-9 w-9 rounded-full bg-surface-raised flex items-center justify-center border border-border mb-3 text-accent text-sm">
-              ✦
-            </div>
-            <h4 className="text-xs font-bold text-foreground">AI Explanation</h4>
-            <p className="mt-1.5 text-[11px] text-muted leading-relaxed max-w-[200px]">
-              No AI explanation generated yet. Explanations from parser syntax and immediate neighbours will be synthesized and cached in Phase 6.
-            </p>
-            {selectedFile && (
-              <div className="mt-4 rounded bg-surface-raised px-2.5 py-1 text-[10px] text-muted border border-border truncate max-w-full">
-                Target: {selectedFile.path.split("/").pop()}
-              </div>
-            )}
-          </div>
+        {activeTab === "explanation" && (
+          <ExplanationPanel
+            analysisId={analysisId}
+            selectedFilePath={selectedFilePath}
+            selectedNodeId={selectedNodeId}
+            allFilePaths={files.map((f) => f.path)}
+            onSelectFile={onSelectFile}
+            cache={explanationsCache}
+            onCacheUpdate={(key, res) => {
+              setExplanationsCache((prev) => ({ ...prev, [key]: res }));
+            }}
+          />
         )}
       </div>
     </aside>

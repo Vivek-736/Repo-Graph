@@ -235,7 +235,7 @@ async function AnalysisContent({ analysisId }: { analysisId: string }) {
           totalImports={edges.length}
           unresolvedCount={edges.filter((e) => !e.resolved).length}
         />
-        <CanvasShell data={parserResult} />
+        <CanvasShell data={parserResult} analysisId={analysisId} />
       </main>
     </div>
   );
