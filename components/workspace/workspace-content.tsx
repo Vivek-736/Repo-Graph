@@ -2,6 +2,9 @@ import { auth, clerkClient } from "@clerk/nextjs/server";
 import { AppShell } from "@/components/shell/app-shell";
 import { OrgSync } from "@/components/org-sync";
 import { createServerDatabaseClient } from "@/lib/supabase/server";
+import { createAdminDatabaseClient } from "@/lib/supabase/admin";
+import { RepoForm } from "./repo-form";
+import { AnalysisList } from "./analysis-list";
 import Link from "next/link";
 
 interface ProjectRelation {
@@ -74,7 +77,7 @@ export async function WorkspaceContent() {
     console.warn("Could not fetch organization details from Clerk, using fallback:", err);
   }
 
-  // Connect to Supabase using client carrying Clerk's signed-in JWT token
+// Connect to Supabase using client carrying Clerk's signed-in JWT token
   const supabase = await createServerDatabaseClient();
 
   let analyses: AnalysisRow[] = [];
@@ -116,10 +119,74 @@ export async function WorkspaceContent() {
     } else {
       analyses = (rawAnalyses as unknown as AnalysisRow[]) || [];
     }
+
+    // If user client returned no rows, fallback to admin client for the organization
+    if (analyses.length === 0) {
+      const adminDb = createAdminDatabaseClient();
+      if (adminDb) {
+        const { data: adminAnalyses } = await adminDb
+          .from("analyses")
+          .select(`
+            id,
+            commit_hash,
+            status,
+            stage,
+            failure_reason,
+            files_count,
+            edges_count,
+            routes_count,
+            coverage_percentage,
+            summary,
+            created_at,
+            projects (
+              id,
+              name,
+              repo_url
+            )
+          `)
+          .eq("organization_id", orgId)
+          .order("created_at", { ascending: false });
+
+        if (adminAnalyses && adminAnalyses.length > 0) {
+          analyses = adminAnalyses as unknown as AnalysisRow[];
+          analysesError = null;
+        }
+      }
+    }
   } else {
-    analysesError = {
-      message: "NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are not configured in .env.local",
-    };
+    const adminDb = createAdminDatabaseClient();
+    if (adminDb) {
+      const { data: adminAnalyses } = await adminDb
+        .from("analyses")
+        .select(`
+          id,
+          commit_hash,
+          status,
+          stage,
+          failure_reason,
+          files_count,
+          edges_count,
+          routes_count,
+          coverage_percentage,
+          summary,
+          created_at,
+          projects (
+            id,
+            name,
+            repo_url
+          )
+        `)
+        .eq("organization_id", orgId)
+        .order("created_at", { ascending: false });
+
+      if (adminAnalyses) {
+        analyses = adminAnalyses as unknown as AnalysisRow[];
+      }
+    } else {
+      analysesError = {
+        message: "NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are not configured in .env.local",
+      };
+    }
   }
 
   return (
@@ -138,13 +205,6 @@ export async function WorkspaceContent() {
             </div>
 
             <div className="flex items-center gap-3">
-              <Link
-                href="/preview"
-                className="rounded bg-accent/10 px-2.5 py-1 text-xs text-accent border border-accent/30 hover:bg-accent/20 transition-colors font-medium inline-flex items-center gap-1.5"
-              >
-                <span>Canvas Preview</span>
-                <span className="text-[10px]">→</span>
-              </Link>
               <span className="rounded bg-surface-raised px-2.5 py-1 text-xs text-muted border border-border">
                 Role: <span className="text-foreground font-medium">{orgRole || "member"}</span>
               </span>
@@ -165,117 +225,11 @@ export async function WorkspaceContent() {
             </div>
           )}
 
-          {/* Analyses List or Empty State */}
-          {analyses.length > 0 ? (
-            <div className="space-y-3">
-              <span className="text-[11px] uppercase tracking-wider text-muted font-semibold">
-                Repository Analyses
-              </span>
+          {/* Repository Ingestion Form */}
+          <RepoForm />
 
-              <div className="grid gap-3">
-                {analyses.map((analysis) => {
-                  const project = Array.isArray(analysis.projects)
-                    ? analysis.projects[0]
-                    : analysis.projects;
-
-                  const isCompleted = analysis.status === "completed";
-                  const isParsing = analysis.status === "parsing" || analysis.status === "pending";
-                  const isFailed = analysis.status === "failed";
-
-                  return (
-                    <div
-                      key={analysis.id}
-                      className="rounded border border-border bg-surface p-4 transition-colors hover:border-muted/40"
-                    >
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <div className="flex items-center gap-2.5">
-                            <span className="text-sm font-bold text-foreground">
-                              {project?.name || "Unknown Repository"}
-                            </span>
-                            {analysis.commit_hash && (
-                              <span className="rounded bg-surface-raised px-2 py-0.5 text-[10px] text-muted border border-border">
-                                {analysis.commit_hash.slice(0, 7)}
-                              </span>
-                            )}
-                          </div>
-                          {project?.repo_url && (
-                            <p className="text-xs text-muted mt-1 select-all">{project.repo_url}</p>
-                          )}
-                        </div>
-
-                        {/* Status Badge */}
-                        <div>
-                          {isCompleted && (
-                            <span className="inline-flex items-center gap-1.5 rounded bg-incoming/10 px-2.5 py-1 text-xs text-incoming border border-incoming/30">
-                              <span className="h-1.5 w-1.5 rounded-full bg-incoming" />
-                              Completed
-                            </span>
-                          )}
-                          {isParsing && (
-                            <span className="inline-flex items-center gap-1.5 rounded bg-outgoing/10 px-2.5 py-1 text-xs text-outgoing border border-outgoing/30">
-                              <span className="h-1.5 w-1.5 rounded-full bg-outgoing animate-pulse" />
-                              {analysis.stage ? `Parsing: ${analysis.stage}` : "Parsing..."}
-                            </span>
-                          )}
-                          {isFailed && (
-                            <span className="inline-flex items-center gap-1.5 rounded bg-red-500/10 px-2.5 py-1 text-xs text-red-500 border border-red-500/30">
-                              Failed
-                            </span>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Summary or Stage */}
-                      {analysis.summary && (
-                        <p className="text-xs text-foreground/90 mt-3 pt-3 border-t border-border/50">
-                          {analysis.summary}
-                        </p>
-                      )}
-
-                      {/* Metrics bar */}
-                      <div className="mt-3 flex items-center gap-6 pt-3 border-t border-border/40 text-xs text-muted">
-                        <div>
-                          Files: <span className="text-foreground font-medium">{analysis.files_count}</span>
-                        </div>
-                        <div>
-                          Edges: <span className="text-foreground font-medium">{analysis.edges_count}</span>
-                        </div>
-                        <div>
-                          Routes: <span className="text-foreground font-medium">{analysis.routes_count}</span>
-                        </div>
-                        {analysis.coverage_percentage !== null && (
-                          <div>
-                            Coverage:{" "}
-                            <span className="text-foreground font-medium">
-                              {Number(analysis.coverage_percentage).toFixed(1)}%
-                            </span>
-                          </div>
-                        )}
-                        <div className="ml-auto text-[11px]">
-                          {new Date(analysis.created_at).toLocaleString()}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          ) : (
-            /* Empty State for a team that has never run an analysis */
-            <div className="rounded border border-dashed border-border bg-surface/50 p-12 text-center">
-              <div className="mx-auto h-10 w-10 rounded-full bg-surface-raised flex items-center justify-center border border-border mb-3">
-                <span className="text-base text-muted font-mono">∅</span>
-              </div>
-              <h2 className="text-sm font-semibold text-foreground">No analyses found for this team</h2>
-              <p className="mt-1 text-xs text-muted max-w-sm mx-auto leading-relaxed">
-                This organization has not run any repository analyses yet. Analyses for this organization will appear here automatically.
-              </p>
-              <div className="mt-4 inline-block text-[11px] text-muted rounded bg-surface-raised px-3 py-1.5 border border-border">
-                Multi-tenant RLS active: Switching organizations in the top header will display that team&apos;s records.
-              </div>
-            </div>
-          )}
+          {/* Live Analyses List */}
+          <AnalysisList initialAnalyses={analyses} />
         </div>
       </div>
     </AppShell>
