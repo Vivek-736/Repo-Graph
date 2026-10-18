@@ -1,14 +1,5 @@
 @import "tailwindcss";
 
-/*
- * RepoGraph Design Tokens
- * 4 palette decisions:
- *   - Accent blue: for interactive & selection
- *   - Incoming green: what flows into a node
- *   - Outgoing amber: what flows out of a node
- *   - Surfaces: near white in light, near black in dark. Greyscale everywhere else.
- */
-
 :root {
   --background: #fbfbfb;
   --surface: #ffffff;
@@ -93,16 +84,29 @@ body {
   font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
 }
 
-/* Hide default browser scrollbars while keeping full scrollability */
+/* Thin, almost-transparent scrollbars */
 * {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(160, 160, 160, 0.25) transparent;
 }
 
 *::-webkit-scrollbar {
-  display: none;
-  width: 0;
-  height: 0;
+  width: 4px;
+  height: 4px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: rgba(160, 160, 160, 0.25);
+  border-radius: 9999px;
+  transition: background-color 0.2s ease;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(160, 160, 160, 0.5);
 }
 
 /* Ensure all buttons have pointer cursor */

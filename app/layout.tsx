@@ -1,12 +1,15 @@
-import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata } from "next";
+import { ClerkProvider } from "@clerk/nextjs";
+import { Suspense } from "react";
 import { Roboto_Condensed } from "next/font/google";
+import { GlobalLoader } from "@/components/ui/global-loader";
 import "./globals.css";
 
 const robotoCondensed = Roboto_Condensed({
   subsets: ["latin"],
   variable: "--font-roboto-condensed",
   weight: ["300", "400", "500", "600", "700"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -58,6 +61,9 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
       <body className="h-full flex flex-col bg-background text-foreground overflow-hidden">
+        <Suspense fallback={null}>
+          <GlobalLoader />
+        </Suspense>
         <ClerkProvider
           appearance={{
             variables: {

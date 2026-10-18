@@ -1,8 +1,7 @@
 "use client";
 
 import { useMemo, useState, useEffect } from "react";
-import { ParserResult, ParsedFile, ParsedEdge } from "@/lib/parser/types";
-import { categorizeFiles, FileCategory } from "./canvas-shell";
+import { ParserResult, ParsedEdge } from "@/lib/parser/types";
 import {
   transitiveWalk,
   computeInsights,
@@ -18,6 +17,7 @@ import {
 import { ExplanationPanel } from "./explanation-panel";
 import { ExplanationResponse } from "@/lib/actions/explain";
 import { classifyUnmatchedFiles } from "@/lib/actions/classify";
+import { ChatPanel } from "./chat-panel";
 
 interface DetailPaneProps {
   data: ParserResult;
@@ -81,6 +81,9 @@ export function DetailPane({
   analysisId,
 }: DetailPaneProps) {
   const { files, edges, stats, rootPath } = data;
+
+  // Phase 11: Ask is a mode of the whole right-hand pane, not a tab
+  const [paneMode, setPaneMode] = useState<"inspect" | "ask">("inspect");
 
   // Tab state persists across selection changes (Acceptance Check 4)
   const [activeTab, setActiveTab] = useState<DetailTab>("structure");
@@ -224,6 +227,21 @@ export function DetailPane({
 
   const hasSelection = Boolean(selectedFile || selectedNodeId);
 
+  if (paneMode === "ask") {
+    return (
+      <aside className="flex w-72 shrink-0 flex-col border-l border-border bg-surface select-none overflow-hidden font-mono text-xs">
+        <ChatPanel
+          analysisId={analysisId}
+          selectedFilePath={selectedFilePath}
+          selectedNodeId={selectedNodeId}
+          allFilePaths={files.map((f) => f.path)}
+          onSelectFile={onSelectFile}
+          onExitAskMode={() => setPaneMode("inspect")}
+        />
+      </aside>
+    );
+  }
+
   return (
     <aside className="flex w-72 shrink-0 flex-col border-l border-border bg-surface select-none overflow-hidden font-mono text-xs">
       {/* ========================================================================= */}
@@ -277,20 +295,32 @@ export function DetailPane({
           })()}
         </div>
 
-        {hasSelection && (
+        <div className="flex items-center gap-1.5">
           <button
             type="button"
-            onClick={() => {
-              onSelectNode(null);
-              onSelectFile(null);
-              setActiveWalk(null);
-            }}
-            className="text-[11px] text-muted hover:text-foreground cursor-pointer px-1.5 py-0.5 rounded hover:bg-surface-raised transition-colors"
-            title="Deselect to return to Repository Overview"
+            onClick={() => setPaneMode("ask")}
+            className="rounded px-2 py-0.5 text-xs font-semibold text-accent hover:bg-accent/15 border border-accent/30 cursor-pointer flex items-center gap-1 transition-colors"
+            title="Toggle into Ask Assistant mode"
           >
-            ✕
+            <span>✦</span>
+            <span>Ask</span>
           </button>
-        )}
+
+          {hasSelection && (
+            <button
+              type="button"
+              onClick={() => {
+                onSelectNode(null);
+                onSelectFile(null);
+                setActiveWalk(null);
+              }}
+              className="text-[11px] text-muted hover:text-foreground cursor-pointer px-1.5 py-0.5 rounded hover:bg-surface-raised transition-colors"
+              title="Deselect to return to Repository Overview"
+            >
+              ✕
+            </button>
+          )}
+        </div>
       </div>
 
       {/* ========================================================================= */}
