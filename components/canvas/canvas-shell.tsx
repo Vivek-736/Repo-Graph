@@ -52,6 +52,11 @@ export function CanvasShell({ data }: CanvasShellProps) {
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [selectedFilePath, setSelectedFilePath] = useState<string | null>(null);
   const [hoveredTarget, setHoveredTarget] = useState<string | null>(null);
+  const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null);
+  const [activeWalk, setActiveWalk] = useState<{
+    paths: string[];
+    direction: "upstream" | "downstream" | null;
+  }>({ paths: [], direction: null });
 
   const categories = useMemo(() => categorizeFiles(files), [files]);
 
@@ -63,9 +68,21 @@ export function CanvasShell({ data }: CanvasShellProps) {
       <aside className="flex w-60 shrink-0 flex-col border-r border-border bg-surface select-none">
         {/* Rail Header */}
         <div className="flex h-10 items-center justify-between border-b border-border px-3.5">
-          <span className="text-[11px] font-semibold uppercase tracking-wider text-muted">
-            Categories
-          </span>
+          <div className="flex items-center gap-1.5">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted">
+              Categories
+            </span>
+            {activeCategoryId && (
+              <button
+                type="button"
+                onClick={() => setActiveCategoryId(null)}
+                className="text-[10px] text-accent hover:underline cursor-pointer ml-1"
+                title="Clear category filter"
+              >
+                (clear)
+              </button>
+            )}
+          </div>
           <span className="text-[10px] text-muted opacity-80">
             {categories.reduce((acc, c) => acc + c.count, 0)} files
           </span>
@@ -73,25 +90,41 @@ export function CanvasShell({ data }: CanvasShellProps) {
 
         {/* Categories List */}
         <div className="flex-1 overflow-y-auto p-2 space-y-1">
-          {categories.map((category) => (
-            <div
-              key={category.id}
-              className="flex items-center justify-between rounded px-2.5 py-1.5 transition-colors hover:bg-surface-raised cursor-default group"
-            >
-              <div className="flex items-center gap-2.5">
-                <span
-                  className="h-2 w-2 rounded-full shrink-0 shadow-xs"
-                  style={{ backgroundColor: category.color }}
-                />
-                <span className="text-xs text-foreground/90 group-hover:text-foreground">
-                  {category.name}
-                </span>
+          {categories.map((category) => {
+            const isActive = activeCategoryId === category.id;
+            return (
+              <div
+                key={category.id}
+                onClick={() => setActiveCategoryId(isActive ? null : category.id)}
+                className={`flex items-center justify-between rounded px-2.5 py-1.5 transition-colors cursor-pointer group ${
+                  isActive
+                    ? "bg-accent/15 border border-accent/40 text-foreground font-semibold ring-1 ring-accent/30 shadow-xs"
+                    : "hover:bg-surface-raised border border-transparent text-foreground/90"
+                }`}
+                title={isActive ? "Click to clear filter" : `Click to filter by ${category.name}`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <span
+                    className="h-2 w-2 rounded-full shrink-0 shadow-xs"
+                    style={{ backgroundColor: category.color }}
+                  />
+                  <span className="text-xs group-hover:text-foreground">
+                    {category.name}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  {isActive && <span className="text-[10px] text-accent">●</span>}
+                  <span
+                    className={`rounded px-1.5 py-0.5 text-[10px] border border-border/60 ${
+                      isActive ? "bg-accent/20 text-accent font-bold" : "bg-surface-raised text-muted"
+                    }`}
+                  >
+                    {category.count}
+                  </span>
+                </div>
               </div>
-              <span className="rounded bg-surface-raised px-1.5 py-0.5 text-[10px] text-muted border border-border/60">
-                {category.count}
-              </span>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Rail Footer / Repository Metrics */}
@@ -133,6 +166,11 @@ export function CanvasShell({ data }: CanvasShellProps) {
                 <span className="text-accent truncate max-w-xs">{selectedFilePath}</span>
               </>
             )}
+            {activeCategoryId && (
+              <span className="rounded bg-accent/15 px-2 py-0.5 text-[10px] text-accent border border-accent/30 font-medium">
+                category: {categories.find((c) => c.id === activeCategoryId)?.name}
+              </span>
+            )}
           </div>
 
           <div className="flex items-center gap-3 text-muted text-[11px]">
@@ -153,6 +191,9 @@ export function CanvasShell({ data }: CanvasShellProps) {
             selectedNodeId={selectedNodeId}
             selectedFilePath={selectedFilePath}
             hoveredTarget={hoveredTarget}
+            activeCategoryId={activeCategoryId}
+            walkedFilePaths={activeWalk.paths}
+            walkDirection={activeWalk.direction}
             onSelectNode={(id) => {
               setSelectedNodeId(id);
               setSelectedFilePath(null);
@@ -166,7 +207,7 @@ export function CanvasShell({ data }: CanvasShellProps) {
       </section>
 
       {/* ========================================================================= */}
-      {/* 3. RIGHT PANE: Detail Pane with Resting & Selection States (Phase 5)       */}
+      {/* 3. RIGHT PANE: Detail Pane with Resting, Walk & Insights (Phase 6)        */}
       {/* ========================================================================= */}
       <DetailPane
         data={data}
@@ -176,6 +217,7 @@ export function CanvasShell({ data }: CanvasShellProps) {
         onSelectNode={setSelectedNodeId}
         onSelectFile={setSelectedFilePath}
         onHoverTarget={setHoveredTarget}
+        onActiveWalkChange={setActiveWalk}
       />
     </div>
   );

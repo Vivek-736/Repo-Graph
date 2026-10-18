@@ -14,6 +14,7 @@ import "@xyflow/react/dist/style.css";
 import dagre from "dagre";
 import { ParsedFile, ParsedEdge } from "@/lib/parser/types";
 import { foldDirectories, FoldedDirectory } from "@/lib/parser/folding";
+import { getFileCategoryId } from "@/lib/parser/graph";
 import { FolderNode, FolderNodeData } from "./folder-node";
 
 const nodeTypes = {
@@ -26,6 +27,9 @@ interface GraphCanvasProps {
   selectedNodeId: string | null;
   selectedFilePath: string | null;
   hoveredTarget?: string | null;
+  activeCategoryId?: string | null;
+  walkedFilePaths?: string[];
+  walkDirection?: "upstream" | "downstream" | null;
   onSelectNode: (nodeId: string | null) => void;
   onSelectFile: (filePath: string | null) => void;
   onHoverTarget?: (target: string | null) => void;
@@ -111,6 +115,9 @@ function InnerGraphCanvas({
   selectedNodeId,
   selectedFilePath,
   hoveredTarget = null,
+  activeCategoryId = null,
+  walkedFilePaths = [],
+  walkDirection = null,
   onSelectNode,
   onSelectFile,
   onHoverTarget = () => {},
@@ -218,6 +225,7 @@ function InnerGraphCanvas({
   }, [selectedFilePath, selectedNodeId, edges, fileToNodeId]);
 
   const hasSelection = Boolean(selectedFilePath || selectedNodeId);
+  const walkedSet = useMemo(() => new Set(walkedFilePaths), [walkedFilePaths]);
 
   // Build React Flow Nodes
   const flowNodes: FlowNode<FolderNodeData>[] = useMemo(() => {
@@ -229,15 +237,31 @@ function InnerGraphCanvas({
         (selectedFilePath !== null && fileToNodeId.get(selectedFilePath) === node.id);
       const isConnected =
         hasSelection && !isSelected && highlightedConnections.connectedNodeIds.has(node.id);
-      const isDimmed = hasSelection && !isSelected && !isConnected;
+
+      const matchedCount = activeCategoryId
+        ? node.files.filter((f) => getFileCategoryId(f.path) === activeCategoryId).length
+        : node.files.length;
+      const hasCategoryMatch = !activeCategoryId || matchedCount > 0;
+      const isWalkedNode = Boolean(walkedSet.size > 0 && node.files.some((f) => walkedSet.has(f.path)));
+
+      // Dimming logic:
+      // When a category is active: dim nodes with 0 matching files, but keep them on screen.
+      // When selection is active: dim unselected, unconnected nodes.
+      const isDimmed =
+        (hasSelection && !isSelected && !isConnected && !isWalkedNode) ||
+        (Boolean(activeCategoryId) && !hasCategoryMatch);
 
       let connectionType: "incoming" | "outgoing" | "both" | null = null;
-      if (isConnected) {
-        const isInc = highlightedConnections.incomingNodeIds.has(node.id);
-        const isOut = highlightedConnections.outgoingNodeIds.has(node.id);
-        if (isInc && isOut) connectionType = "both";
-        else if (isInc) connectionType = "incoming";
-        else if (isOut) connectionType = "outgoing";
+      if (isConnected || isWalkedNode) {
+        if (isWalkedNode) {
+          connectionType = walkDirection === "upstream" ? "incoming" : "outgoing";
+        } else {
+          const isInc = highlightedConnections.incomingNodeIds.has(node.id);
+          const isOut = highlightedConnections.outgoingNodeIds.has(node.id);
+          if (isInc && isOut) connectionType = "both";
+          else if (isInc) connectionType = "incoming";
+          else if (isOut) connectionType = "outgoing";
+        }
       }
 
       const isNodeHovered = hoveredTarget === node.id;
@@ -259,7 +283,7 @@ function InnerGraphCanvas({
           height: node.height,
           isOpen,
           isSelected,
-          isConnected,
+          isConnected: isConnected || isWalkedNode,
           isDimmed,
           connectionType,
           selectedFilePath,
@@ -267,6 +291,10 @@ function InnerGraphCanvas({
           outgoingFilePaths: highlightedConnections.outgoingFilePaths,
           isHovered: isNodeHovered,
           hoveredFilePath,
+          activeCategoryId,
+          categoryMatchCount: activeCategoryId ? matchedCount : undefined,
+          walkedFilePaths,
+          walkDirection,
           onToggleOpen: handleToggleOpen,
           onSelectNode,
           onSelectFile,
@@ -284,6 +312,10 @@ function InnerGraphCanvas({
     hasSelection,
     highlightedConnections,
     hoveredTarget,
+    activeCategoryId,
+    walkedSet,
+    walkedFilePaths,
+    walkDirection,
     files,
     fileToNodeId,
     handleToggleOpen,
@@ -356,6 +388,11 @@ function InnerGraphCanvas({
             tgtNode === hoveredTarget)
       );
 
+      const isWalkMatch = Boolean(
+        walkedSet.size > 0 &&
+          (walkedSet.has(edge.source) || (edge.target && walkedSet.has(edge.target)))
+      );
+
       if (!groupMap.has(key)) {
         groupMap.set(key, {
           source: srcNode,
@@ -364,13 +401,13 @@ function InnerGraphCanvas({
           targetHandle,
           hasIncomingHighlight: isIncoming,
           hasOutgoingHighlight: isOutgoing,
-          hasHoverHighlight: isHoverMatch,
+          hasHoverHighlight: isHoverMatch || isWalkMatch,
         });
       } else {
         const existing = groupMap.get(key)!;
         if (isIncoming) existing.hasIncomingHighlight = true;
         if (isOutgoing) existing.hasOutgoingHighlight = true;
-        if (isHoverMatch) existing.hasHoverHighlight = true;
+        if (isHoverMatch || isWalkMatch) existing.hasHoverHighlight = true;
       }
     }
 
@@ -380,14 +417,14 @@ function InnerGraphCanvas({
       const isIncoming = group.hasIncomingHighlight;
       const isOutgoing = group.hasOutgoingHighlight;
       const isHover = group.hasHoverHighlight;
-      const isDimmed = hasSelection && !isIncoming && !isOutgoing && !isHover;
+      const isDimmed = (hasSelection || Boolean(activeCategoryId) || walkedSet.size > 0) && !isIncoming && !isOutgoing && !isHover;
 
       let stroke = "rgba(100, 116, 139, 0.45)";
       let strokeWidth = 1.25;
       let zIndex = 5;
 
       if (isHover) {
-        stroke = isIncoming ? "#10b981" : isOutgoing ? "#f59e0b" : "#38bdf8";
+        stroke = walkDirection === "upstream" ? "#10b981" : walkDirection === "downstream" ? "#f59e0b" : (isIncoming ? "#10b981" : isOutgoing ? "#f59e0b" : "#38bdf8");
         strokeWidth = 3.5;
         zIndex = 50;
       } else if (isIncoming) {
@@ -431,6 +468,9 @@ function InnerGraphCanvas({
     selectedNodeId,
     hasSelection,
     hoveredTarget,
+    activeCategoryId,
+    walkedSet,
+    walkDirection,
     foldedDirs,
   ]);
 

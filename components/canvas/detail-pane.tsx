@@ -1,7 +1,15 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { ParserResult, ParsedFile, ParsedEdge } from "@/lib/parser/types";
+import { categorizeFiles, FileCategory } from "./canvas-shell";
+import {
+  transitiveWalk,
+  computeInsights,
+  WalkStep,
+  WalkDirection,
+  INSIGHT_SENTENCES,
+} from "@/lib/parser/graph";
 
 interface DetailPaneProps {
   data: ParserResult;
@@ -11,6 +19,7 @@ interface DetailPaneProps {
   onSelectNode: (nodeId: string | null) => void;
   onSelectFile: (filePath: string | null) => void;
   onHoverTarget: (target: string | null) => void;
+  onActiveWalkChange?: (walk: { paths: string[]; direction: WalkDirection | null }) => void;
 }
 
 export type DetailTab = "structure" | "explanation";
@@ -20,7 +29,13 @@ export type DetailTab = "structure" | "explanation";
  */
 export function getFileKind(filePath: string): { label: string; color: string } {
   const p = filePath.toLowerCase();
-  if (p.includes("/page.") || p.includes("/route.") || p.includes("/layout.") || p.includes("proxy.") || p.includes("middleware.")) {
+  if (
+    p.includes("/page.") ||
+    p.includes("/route.") ||
+    p.includes("/layout.") ||
+    p.includes("proxy.") ||
+    p.includes("middleware.")
+  ) {
     return { label: "Route / Page", color: "#a855f7" };
   }
   if (p.startsWith("components/") || p.includes("/components/") || p.endsWith(".tsx")) {
@@ -56,11 +71,36 @@ export function DetailPane({
   onSelectNode,
   onSelectFile,
   onHoverTarget,
+  onActiveWalkChange,
 }: DetailPaneProps) {
   const { files, edges, stats, rootPath } = data;
 
   // Tab state persists across selection changes (Acceptance Check 4)
   const [activeTab, setActiveTab] = useState<DetailTab>("structure");
+
+  // Phase 6: Transitive Walk state (Blast radius & Dependency chain)
+  const [activeWalk, setActiveWalk] = useState<WalkDirection | null>(null);
+
+  // Phase 6: Insights panel starts collapsed
+  const [isInsightsOpen, setIsInsightsOpen] = useState(false);
+
+  // Compute 4 kinds of insights purely from facts about the edge list
+  const insights = useMemo(() => computeInsights(files, edges), [files, edges]);
+
+  // Transitive walk computation (two levels deep by default)
+  const walkSteps: WalkStep[] = useMemo(() => {
+    if (!selectedFilePath || !activeWalk) return [];
+    return transitiveWalk(selectedFilePath, edges, activeWalk, 2);
+  }, [selectedFilePath, activeWalk, edges]);
+
+  // Notify canvas of active walk paths
+  useEffect(() => {
+    if (activeWalk && walkSteps.length > 0) {
+      onActiveWalkChange?.({ paths: walkSteps.map((s) => s.path), direction: activeWalk });
+    } else {
+      onActiveWalkChange?.({ paths: [], direction: null });
+    }
+  }, [activeWalk, walkSteps, onActiveWalkChange]);
 
   const repoName = useMemo(() => {
     const parts = rootPath.split("/").filter(Boolean);
@@ -95,7 +135,6 @@ export function DetailPane({
     return [...files]
       .filter((f) => f.fanIn === 0)
       .sort((a, b) => {
-        // Prioritize pages/entrypoints first, then alphabetical
         const aIsPage = a.path.includes("page.") || a.path.includes("index.");
         const bIsPage = b.path.includes("page.") || b.path.includes("index.");
         if (aIsPage && !bIsPage) return -1;
@@ -173,20 +212,22 @@ export function DetailPane({
             <button
               type="button"
               onClick={() => setActiveTab("structure")}
-              className={`rounded px-2.5 py-1 text-xs font-semibold cursor-pointer transition-colors ${activeTab === "structure"
+              className={`rounded px-2.5 py-1 text-xs font-semibold cursor-pointer transition-colors ${
+                activeTab === "structure"
                   ? "bg-surface-raised text-foreground border border-border"
                   : "text-muted hover:text-foreground border border-transparent"
-                }`}
+              }`}
             >
               Structure
             </button>
             <button
               type="button"
               onClick={() => setActiveTab("explanation")}
-              className={`rounded px-2.5 py-1 text-xs font-semibold cursor-pointer transition-colors ${activeTab === "explanation"
+              className={`rounded px-2.5 py-1 text-xs font-semibold cursor-pointer transition-colors ${
+                activeTab === "explanation"
                   ? "bg-surface-raised text-foreground border border-border"
                   : "text-muted hover:text-foreground border border-transparent"
-                }`}
+              }`}
             >
               Explanation
             </button>
@@ -205,6 +246,7 @@ export function DetailPane({
             onClick={() => {
               onSelectNode(null);
               onSelectFile(null);
+              setActiveWalk(null);
             }}
             className="text-[11px] text-muted hover:text-foreground cursor-pointer px-1.5 py-0.5 rounded hover:bg-surface-raised transition-colors"
             title="Deselect to return to Repository Overview"
@@ -242,7 +284,9 @@ export function DetailPane({
                 <span className="text-[10px] text-muted">Files</span>
               </div>
               <div className="rounded border border-border bg-surface-raised/40 p-2">
-                <span className="text-foreground font-bold text-sm block">{stats.totalLines.toLocaleString()}</span>
+                <span className="text-foreground font-bold text-sm block">
+                  {stats.totalLines.toLocaleString()}
+                </span>
                 <span className="text-[10px] text-muted">Lines</span>
               </div>
               <div className="rounded border border-border bg-surface-raised/40 p-2">
@@ -282,10 +326,11 @@ export function DetailPane({
                       onClick={() => onSelectFile(file.path)}
                       onMouseEnter={() => onHoverTarget(file.path)}
                       onMouseLeave={() => onHoverTarget(null)}
-                      className={`flex items-center justify-between rounded border p-1.5 text-[11px] cursor-pointer transition-colors ${isHovered
+                      className={`flex items-center justify-between rounded border p-1.5 text-[11px] cursor-pointer transition-colors ${
+                        isHovered
                           ? "border-incoming bg-incoming/10 text-foreground"
                           : "border-border/70 bg-surface-raised/40 text-foreground/90 hover:border-incoming/40 hover:bg-surface-raised"
-                        }`}
+                      }`}
                       title={file.path}
                     >
                       <span className="truncate pr-2 font-medium">
@@ -315,10 +360,11 @@ export function DetailPane({
                       onClick={() => onSelectFile(file.path)}
                       onMouseEnter={() => onHoverTarget(file.path)}
                       onMouseLeave={() => onHoverTarget(null)}
-                      className={`flex items-center justify-between rounded border p-1.5 text-[11px] cursor-pointer transition-colors ${isHovered
+                      className={`flex items-center justify-between rounded border p-1.5 text-[11px] cursor-pointer transition-colors ${
+                        isHovered
                           ? "border-accent bg-accent/10 text-foreground"
                           : "border-border/70 bg-surface-raised/40 text-foreground/90 hover:border-accent/40 hover:bg-surface-raised"
-                        }`}
+                      }`}
                       title={file.path}
                     >
                       <span className="truncate pr-2 font-medium">
@@ -331,6 +377,177 @@ export function DetailPane({
                   );
                 })}
               </div>
+            </div>
+
+            {/* ------------------------------------------------------------- */}
+            {/* Phase 6: Collapsible Insights Panel (Starts collapsed)        */}
+            {/* ------------------------------------------------------------- */}
+            <div className="rounded border border-border bg-surface-raised/40 overflow-hidden">
+              <button
+                type="button"
+                onClick={() => setIsInsightsOpen((prev) => !prev)}
+                className="flex w-full items-center justify-between p-2.5 text-left hover:bg-surface-raised cursor-pointer transition-colors group"
+                title="Toggle Codebase Insights"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] text-muted group-hover:text-foreground">
+                    {isInsightsOpen ? "▼" : "▶"}
+                  </span>
+                  <span className="text-xs font-semibold text-foreground">Codebase Insights</span>
+                </div>
+                <span className="rounded bg-surface px-1.5 py-0.2 text-[10px] text-muted border border-border font-medium">
+                  {insights.totalCount}
+                </span>
+              </button>
+
+              {isInsightsOpen && (
+                <div className="border-t border-border/60 p-2.5 space-y-4 bg-surface/50">
+                  {/* 1. Files nothing imports (LEADS THE LIST per spec) */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-[10px] uppercase font-semibold text-accent tracking-wider">
+                        Files Nothing Imports ({insights.unimported.length})
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-muted mb-2 leading-relaxed">
+                      {INSIGHT_SENTENCES.unimported}
+                    </p>
+                    {insights.unimported.length > 0 ? (
+                      <div className="space-y-1">
+                        {insights.unimported.map((item) => (
+                          <div
+                            key={item.path}
+                            onClick={() => onSelectFile(item.path)}
+                            onMouseEnter={() => onHoverTarget(item.path)}
+                            onMouseLeave={() => onHoverTarget(null)}
+                            className="flex items-center justify-between rounded border border-border/80 bg-surface-raised/50 p-1.5 text-[11px] cursor-pointer hover:border-accent hover:bg-surface-raised transition-colors"
+                            title={item.path}
+                          >
+                            <span className="truncate pr-2 font-medium">
+                              {item.path.split("/").pop()}
+                            </span>
+                            <span className="text-[10px] text-muted shrink-0">{item.meta}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-[10px] text-muted italic">No unimported standalone files.</div>
+                    )}
+                  </div>
+
+                  {/* 2. Files an unusual number of things import (POPULAR / HIGH FAN-IN) */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-[10px] uppercase font-semibold text-incoming tracking-wider">
+                        High Fan-In Files ({insights.popular.length})
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-muted mb-2 leading-relaxed">
+                      {INSIGHT_SENTENCES.popular}
+                    </p>
+                    {insights.popular.length > 0 ? (
+                      <div className="space-y-1">
+                        {insights.popular.map((item) => (
+                          <div
+                            key={item.path}
+                            onClick={() => onSelectFile(item.path)}
+                            onMouseEnter={() => onHoverTarget(item.path)}
+                            onMouseLeave={() => onHoverTarget(null)}
+                            className="flex items-center justify-between rounded border border-border/80 bg-surface-raised/50 p-1.5 text-[11px] cursor-pointer hover:border-incoming/60 hover:bg-surface-raised transition-colors"
+                            title={item.path}
+                          >
+                            <span className="truncate pr-2 font-medium">
+                              {item.path.split("/").pop()}
+                            </span>
+                            <span className="rounded bg-incoming/10 px-1.5 py-0.2 text-[10px] text-incoming border border-incoming/30 font-bold shrink-0">
+                              {item.meta}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-[10px] text-muted italic">No high fan-in hotspots.</div>
+                    )}
+                  </div>
+
+                  {/* 3. Circular Dependency Cycles (CYCLES) */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-[10px] uppercase font-semibold text-outgoing tracking-wider">
+                        Circular Dependencies ({insights.cycles.length})
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-muted mb-2 leading-relaxed">
+                      {INSIGHT_SENTENCES.cycle}
+                    </p>
+                    {insights.cycles.length > 0 ? (
+                      <div className="space-y-1.5">
+                        {insights.cycles.map((item, idx) => (
+                          <div
+                            key={idx}
+                            className="rounded border border-outgoing/40 bg-outgoing/5 p-2 text-[11px] space-y-1"
+                          >
+                            <div className="text-[10px] font-bold text-outgoing">
+                              Cycle #{idx + 1} ({item.cycle.length - 1} hops)
+                            </div>
+                            <div className="space-y-0.5">
+                              {item.cycle.map((p, pIdx) => (
+                                <div
+                                  key={pIdx}
+                                  onClick={() => onSelectFile(p)}
+                                  onMouseEnter={() => onHoverTarget(p)}
+                                  onMouseLeave={() => onHoverTarget(null)}
+                                  className="truncate text-[10px] hover:underline cursor-pointer text-foreground/90 font-mono"
+                                  title={`Click to select ${p}`}
+                                >
+                                  {pIdx > 0 ? "↳ " : ""}
+                                  {p.split("/").pop()}{" "}
+                                  <span className="text-muted text-[9px]">({p})</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-[10px] text-muted italic">No circular dependencies found.</div>
+                    )}
+                  </div>
+
+                  {/* 4. Files that are simply too long (OVERSIZED) */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-[10px] uppercase font-semibold text-muted tracking-wider">
+                        Oversized Files ({insights.oversized.length})
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-muted mb-2 leading-relaxed">
+                      {INSIGHT_SENTENCES.oversized}
+                    </p>
+                    {insights.oversized.length > 0 ? (
+                      <div className="space-y-1">
+                        {insights.oversized.map((item) => (
+                          <div
+                            key={item.path}
+                            onClick={() => onSelectFile(item.path)}
+                            onMouseEnter={() => onHoverTarget(item.path)}
+                            onMouseLeave={() => onHoverTarget(null)}
+                            className="flex items-center justify-between rounded border border-border/80 bg-surface-raised/50 p-1.5 text-[11px] cursor-pointer hover:border-muted hover:bg-surface-raised transition-colors"
+                            title={item.path}
+                          >
+                            <span className="truncate pr-2 font-medium">
+                              {item.path.split("/").pop()}
+                            </span>
+                            <span className="text-[10px] text-muted shrink-0">{item.meta}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-[10px] text-muted italic">No oversized files.</div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -377,6 +594,116 @@ export function DetailPane({
               </div>
             </div>
 
+            {/* Phase 6: Transitive Walk Buttons (Blast Radius & Dependency Chain) */}
+            <div className="space-y-2 pt-1">
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setActiveWalk(activeWalk === "upstream" ? null : "upstream")}
+                  className={`rounded px-2.5 py-1.5 text-xs font-semibold border cursor-pointer transition-all flex items-center justify-center gap-1.5 ${
+                    activeWalk === "upstream"
+                      ? "bg-incoming/20 text-incoming border-incoming/60 ring-2 ring-incoming/40 shadow-xs"
+                      : "bg-surface-raised text-foreground border-border hover:border-incoming/50 hover:bg-surface-raised/80"
+                  }`}
+                  title="What breaks if this file changes (2 levels deep)"
+                >
+                  <span>💥</span>
+                  <span>Blast radius</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveWalk(activeWalk === "downstream" ? null : "downstream")}
+                  className={`rounded px-2.5 py-1.5 text-xs font-semibold border cursor-pointer transition-all flex items-center justify-center gap-1.5 ${
+                    activeWalk === "downstream"
+                      ? "bg-outgoing/20 text-outgoing border-outgoing/60 ring-2 ring-outgoing/40 shadow-xs"
+                      : "bg-surface-raised text-foreground border-border hover:border-outgoing/50 hover:bg-surface-raised/80"
+                  }`}
+                  title="Everything this file needs (2 levels deep)"
+                >
+                  <span>⛓</span>
+                  <span>Dependency chain</span>
+                </button>
+              </div>
+
+              {/* Active Walk Results Panel (Instant, 0 network requests) */}
+              {activeWalk && (
+                <div className="rounded border border-border bg-surface-raised/70 p-2.5 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5">
+                      <span
+                        className={`text-[11px] font-bold uppercase tracking-wider ${
+                          activeWalk === "upstream" ? "text-incoming" : "text-outgoing"
+                        }`}
+                      >
+                        {activeWalk === "upstream" ? `Blast Radius` : `Dependency Chain`}
+                      </span>
+                      <span className="rounded bg-surface px-1.5 py-0.2 text-[10px] text-muted border border-border font-medium">
+                        {walkSteps.length} {walkSteps.length === 1 ? "file" : "files"}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setActiveWalk(null)}
+                      className="text-[10px] text-muted hover:text-foreground cursor-pointer px-1 rounded hover:bg-surface-raised"
+                      title="Close walk view"
+                    >
+                      ✕
+                    </button>
+                  </div>
+
+                  <p className="text-[10px] text-muted leading-tight">
+                    {activeWalk === "upstream"
+                      ? "Transitive walk 2 levels deep: everything that breaks if this file changes."
+                      : "Transitive walk 2 levels deep: everything this file needs directly or indirectly."}
+                  </p>
+
+                  {walkSteps.length > 0 ? (
+                    <div className="space-y-1 max-h-60 overflow-y-auto pt-1">
+                      {walkSteps.map((step) => {
+                        const isHovered = hoveredTarget === step.path;
+                        return (
+                          <div
+                            key={step.path}
+                            onClick={() => onSelectFile(step.path)}
+                            onMouseEnter={() => onHoverTarget(step.path)}
+                            onMouseLeave={() => onHoverTarget(null)}
+                            className={`flex items-center justify-between rounded border p-1.5 text-[11px] cursor-pointer transition-all ${
+                              isHovered
+                                ? activeWalk === "upstream"
+                                  ? "border-incoming bg-incoming/15 text-foreground ring-1 ring-incoming/50"
+                                  : "border-outgoing bg-outgoing/15 text-foreground ring-1 ring-outgoing/50"
+                                : "border-border/80 bg-surface/60 text-foreground hover:bg-surface-raised"
+                            }`}
+                            title={`Click to select ${step.path} (${step.depth === 1 ? "1 hop" : "2 hops"})`}
+                          >
+                            <div className="truncate pr-2">
+                              <div className="font-semibold truncate">{step.path.split("/").pop()}</div>
+                              <div className="text-[9px] text-muted truncate">{step.path}</div>
+                            </div>
+                            <span
+                              className={`rounded px-1.5 py-0.2 text-[9px] font-bold shrink-0 border ${
+                                step.depth === 1
+                                  ? activeWalk === "upstream"
+                                    ? "bg-incoming/15 text-incoming border-incoming/30"
+                                    : "bg-outgoing/15 text-outgoing border-outgoing/30"
+                                  : "bg-surface text-muted border-border"
+                              }`}
+                            >
+                              {step.depth === 1 ? "direct" : "2 hops"}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="rounded border border-dashed border-border/70 p-2 text-center text-[10px] text-muted italic">
+                      No {activeWalk === "upstream" ? "callers" : "dependencies"} found within 2 levels.
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
             {/* File Metadata */}
             <div className="rounded bg-surface-raised/70 p-2.5 text-[11px] space-y-1 border border-border">
               <div className="flex justify-between">
@@ -412,10 +739,11 @@ export function DetailPane({
                         onClick={() => onSelectFile(edge.source)}
                         onMouseEnter={() => onHoverTarget(edge.source)}
                         onMouseLeave={() => onHoverTarget(null)}
-                        className={`rounded border p-1.5 text-[11px] cursor-pointer transition-all ${isHovered
+                        className={`rounded border p-1.5 text-[11px] cursor-pointer transition-all ${
+                          isHovered
                             ? "border-incoming bg-incoming/15 text-foreground ring-1 ring-incoming/50"
                             : "border-border bg-surface-raised/60 text-foreground hover:border-incoming/50 hover:bg-surface-raised"
-                          }`}
+                        }`}
                         title={`Click to navigate to ${edge.source}`}
                       >
                         <div className="truncate font-semibold">{edge.source.split("/").pop()}</div>
@@ -451,10 +779,11 @@ export function DetailPane({
                         onClick={() => edge.target && onSelectFile(edge.target)}
                         onMouseEnter={() => edge.target && onHoverTarget(edge.target)}
                         onMouseLeave={() => onHoverTarget(null)}
-                        className={`rounded border p-1.5 text-[11px] cursor-pointer transition-all ${isHovered
+                        className={`rounded border p-1.5 text-[11px] cursor-pointer transition-all ${
+                          isHovered
                             ? "border-outgoing bg-outgoing/15 text-foreground ring-1 ring-outgoing/50"
                             : "border-border bg-surface-raised/60 text-foreground hover:border-outgoing/50 hover:bg-surface-raised"
-                          }`}
+                        }`}
                         title={`Click to navigate to ${targetPath}`}
                       >
                         <div className="truncate font-semibold">{targetPath.split("/").pop()}</div>
@@ -522,7 +851,7 @@ export function DetailPane({
               <span className="text-[10px] uppercase text-muted tracking-wider block mb-1.5">
                 Contained Files ({selectedNodeFiles.length})
               </span>
-              <div className="space-y-1">
+              <div className="space-y-1 max-h-96 overflow-y-auto">
                 {selectedNodeFiles.map((f) => {
                   const isHovered = hoveredTarget === f.path;
                   return (
@@ -531,10 +860,11 @@ export function DetailPane({
                       onClick={() => onSelectFile(f.path)}
                       onMouseEnter={() => onHoverTarget(f.path)}
                       onMouseLeave={() => onHoverTarget(null)}
-                      className={`flex items-center justify-between rounded border p-1.5 text-[11px] cursor-pointer transition-colors ${isHovered
+                      className={`flex items-center justify-between rounded border p-1.5 text-[11px] cursor-pointer transition-colors ${
+                        isHovered
                           ? "border-accent bg-accent/10 text-foreground"
                           : "border-border/70 bg-surface-raised/50 text-foreground hover:border-accent hover:bg-surface-raised"
-                        }`}
+                      }`}
                       title={`Click to select ${f.path}`}
                     >
                       <span className="truncate pr-2 font-medium">{f.path.split("/").pop()}</span>

@@ -3,6 +3,7 @@
 import { memo } from "react";
 import { Handle, Position, NodeProps, Node } from "@xyflow/react";
 import { ParsedFile } from "@/lib/parser/types";
+import { getFileCategoryId } from "@/lib/parser/graph";
 
 export interface FolderNodeData extends Record<string, unknown> {
   id: string;
@@ -21,6 +22,10 @@ export interface FolderNodeData extends Record<string, unknown> {
   outgoingFilePaths: string[];
   isHovered: boolean;
   hoveredFilePath: string | null;
+  activeCategoryId?: string | null;
+  categoryMatchCount?: number;
+  walkedFilePaths?: string[];
+  walkDirection?: "upstream" | "downstream" | null;
   onToggleOpen: (nodeId: string) => void;
   onSelectNode: (nodeId: string) => void;
   onSelectFile: (filePath: string) => void;
@@ -50,6 +55,10 @@ export const FolderNode = memo(function FolderNode({ data }: NodeProps<FolderNod
     outgoingFilePaths = [],
     isHovered = false,
     hoveredFilePath = null,
+    activeCategoryId = null,
+    categoryMatchCount,
+    walkedFilePaths = [],
+    walkDirection = null,
     onToggleOpen,
     onSelectNode,
     onSelectFile,
@@ -62,6 +71,7 @@ export const FolderNode = memo(function FolderNode({ data }: NodeProps<FolderNod
 
   const incomingSet = new Set(incomingFilePaths);
   const outgoingSet = new Set(outgoingFilePaths);
+  const walkedSet = new Set(walkedFilePaths);
   const isContainingHoveredFile = Boolean(
     hoveredFilePath && files.some((f) => f.path === hoveredFilePath)
   );
@@ -123,9 +133,15 @@ export const FolderNode = memo(function FolderNode({ data }: NodeProps<FolderNod
           </div>
 
           <div className="flex items-center gap-1.5 shrink-0">
-            <span className="rounded bg-surface px-1.5 py-0.2 text-[10px] text-muted border border-border">
-              {files.length}
-            </span>
+            {activeCategoryId ? (
+              <span className="rounded bg-accent/15 px-1.5 py-0.2 text-[10px] text-accent border border-accent/40 font-bold shrink-0">
+                {categoryMatchCount ?? 0} / {files.length} matched
+              </span>
+            ) : (
+              <span className="rounded bg-surface px-1.5 py-0.2 text-[10px] text-muted border border-border">
+                {files.length}
+              </span>
+            )}
             {fanIn > 0 && (
               <span className="rounded bg-incoming/10 px-1 py-0.2 text-[9px] text-incoming border border-incoming/30 font-medium" title="Fan-in">
                 ↓{fanIn}
@@ -147,18 +163,26 @@ export const FolderNode = memo(function FolderNode({ data }: NodeProps<FolderNod
             const isCaller = incomingSet.has(file.path);
             const isDependency = outgoingSet.has(file.path);
             const isRowHovered = hoveredFilePath === file.path;
+            const isCategoryMatch = !activeCategoryId || getFileCategoryId(file.path) === activeCategoryId;
+            const isWalked = Boolean(walkedSet.has(file.path));
             const isRowDimmed =
-              selectedFilePath !== null && !isFileSelected && !isCaller && !isDependency && !isRowHovered;
+              selectedFilePath !== null && !isFileSelected && !isCaller && !isDependency && !isRowHovered && !isWalked;
 
             let rowStyle = "text-foreground hover:bg-surface-raised/70 border border-transparent";
             if (isFileSelected) {
               rowStyle = "bg-accent/20 text-accent font-bold border border-accent/60 shadow-xs";
             } else if (isRowHovered) {
               rowStyle = "bg-accent/25 text-foreground font-semibold border border-accent ring-1 ring-accent/60 shadow-xs";
+            } else if (isWalked) {
+              rowStyle = walkDirection === "upstream"
+                ? "bg-incoming/20 text-incoming font-bold border border-incoming/50 shadow-xs ring-1 ring-incoming/30"
+                : "bg-outgoing/20 text-outgoing font-bold border border-outgoing/50 shadow-xs ring-1 ring-outgoing/30";
             } else if (isCaller) {
               rowStyle = "bg-incoming/15 text-incoming font-medium border border-incoming/40";
             } else if (isDependency) {
               rowStyle = "bg-outgoing/15 text-outgoing font-medium border border-outgoing/40";
+            } else if (!isCategoryMatch) {
+              rowStyle = "opacity-20 filter grayscale text-muted/30 border border-transparent";
             } else if (isRowDimmed) {
               rowStyle = "text-muted/40 border border-transparent";
             }
@@ -275,9 +299,15 @@ export const FolderNode = memo(function FolderNode({ data }: NodeProps<FolderNod
           </span>
         </div>
 
-        <span className="rounded bg-surface-raised px-1.5 py-0.2 text-[10px] text-muted border border-border shrink-0">
-          {files.length}
-        </span>
+        {activeCategoryId ? (
+          <span className="rounded bg-accent/15 px-1.5 py-0.2 text-[10px] text-accent border border-accent/40 font-bold shrink-0">
+            {categoryMatchCount ?? 0} matched
+          </span>
+        ) : (
+          <span className="rounded bg-surface-raised px-1.5 py-0.2 text-[10px] text-muted border border-border shrink-0">
+            {files.length}
+          </span>
+        )}
       </div>
 
       {/* Metrics Row (Fan-in visually explains height) */}
