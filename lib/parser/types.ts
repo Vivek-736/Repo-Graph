@@ -1,4 +1,4 @@
-export type EdgeKind = "import" | "reexport" | "dynamic";
+export type EdgeKind = "import" | "reexport" | "dynamic" | "require";
 
 export interface ParsedFile {
   id: string;
@@ -9,6 +9,7 @@ export interface ParsedFile {
   contentHash: string;
   fanIn: number;
   fanOut: number;
+  exports?: string[];
 }
 
 export interface ParsedEdge {

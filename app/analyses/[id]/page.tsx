@@ -101,7 +101,7 @@ async function AnalysisContent({ analysisId }: { analysisId: string }) {
     id: e.id,
     source: fileIdToPath.get(e.source_file_id) || "unknown",
     target: e.target_file_id ? (fileIdToPath.get(e.target_file_id) ?? null) : null,
-    kind: e.kind as "import" | "reexport" | "dynamic",
+    kind: e.kind as import("@/lib/parser/types").EdgeKind,
     specifier: e.raw_specifier,
     resolved: Boolean(e.resolved),
     unresolvedReason: e.unresolved_reason || undefined,
@@ -120,12 +120,17 @@ async function AnalysisContent({ analysisId }: { analysisId: string }) {
   const hasNextRoles = (rawRoles || []).some((r) =>
     ["page_route", "api_endpoint", "server_action"].includes(r.role)
   );
+  const hasExpressRoles = (rawRoles || []).some((r) =>
+    ["route", "middleware"].includes(r.role)
+  );
 
   let frameworkId: FrameworkId = "generic";
   if (hasNestRoles) {
     frameworkId = "nestjs";
   } else if (hasNextRoles) {
     frameworkId = "nextjs";
+  } else if (hasExpressRoles) {
+    frameworkId = "express";
   } else {
     frameworkId = detectFrameworkFromPaths(files.map((f) => f.path));
   }
@@ -155,7 +160,14 @@ async function AnalysisContent({ analysisId }: { analysisId: string }) {
   const parserResult: ParserResult = {
     rootPath: repoUrl,
     framework: frameworkId,
-    frameworkName: frameworkId === "nextjs" ? "Next.js" : frameworkId === "nestjs" ? "NestJS" : "Plain Library",
+    frameworkName:
+      frameworkId === "nextjs"
+        ? "Next.js"
+        : frameworkId === "nestjs"
+        ? "NestJS"
+        : frameworkId === "express"
+        ? "Express"
+        : "Plain Library",
     stats: {
       filesFound: files.length,
       filesParsed: files.length,

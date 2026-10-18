@@ -115,7 +115,7 @@ export function DetailPane({
   const frameworkId = (data.framework as FrameworkId) || "generic";
   const frameworkName =
     data.frameworkName ||
-    (frameworkId === "nestjs" ? "NestJS" : frameworkId === "nextjs" ? "Next.js" : "Plain Library");
+    (frameworkId === "nestjs" ? "NestJS" : frameworkId === "nextjs" ? "Next.js" : frameworkId === "express" ? "Express" : "Plain Library");
 
   const routes = useMemo(() => data.routes || [], [data.routes]);
   const [routeSearch, setRouteSearch] = useState("");

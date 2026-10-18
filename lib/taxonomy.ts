@@ -4,7 +4,7 @@
  * without pulling ts-morph, fs, or node builtins into the client bundle.
  */
 
-export type FrameworkId = "nextjs" | "nestjs" | "generic";
+export type FrameworkId = "nextjs" | "nestjs" | "express" | "generic";
 
 export interface TaxonomyCategory {
   id: string;
@@ -45,6 +45,19 @@ export const FRAMEWORK_TAXONOMIES: Record<FrameworkId, FrameworkTaxonomy> = {
       { id: "types", name: "Types", role: "types", color: "#ec4899", description: "DTOs & type definitions" },
     ],
   },
+  express: {
+    id: "express",
+    name: "Express",
+    categories: [
+      { id: "routes", name: "Routes", role: "route", color: "#a855f7", description: "Route handlers & routers" },
+      { id: "controllers", name: "Controllers", role: "controller", color: "#38bdf8", description: "Request handlers & controllers" },
+      { id: "middleware", name: "Middleware", role: "middleware", color: "#ec4899", description: "Express middleware functions" },
+      { id: "services", name: "Services", role: "service", color: "#10b981", description: "Business logic & domain services" },
+      { id: "models", name: "Models", role: "model", color: "#f59e0b", description: "Data models & schemas" },
+      { id: "entry_points", name: "Entry points", role: "entry_point", color: "#6366f1", description: "App setup & server listeners" },
+      { id: "internals", name: "Internals", role: "internal", color: "#64748b", description: "Internal utilities & helpers" },
+    ],
+  },
   generic: {
     id: "generic",
     name: "Plain Library",
@@ -63,6 +76,7 @@ export const FRAMEWORK_TAXONOMIES: Record<FrameworkId, FrameworkTaxonomy> = {
 export function getTaxonomy(framework: FrameworkId | string = "generic"): FrameworkTaxonomy {
   if (framework === "nextjs") return FRAMEWORK_TAXONOMIES.nextjs;
   if (framework === "nestjs") return FRAMEWORK_TAXONOMIES.nestjs;
+  if (framework === "express") return FRAMEWORK_TAXONOMIES.express;
   return FRAMEWORK_TAXONOMIES.generic;
 }
 
@@ -89,6 +103,19 @@ export function detectFrameworkFromPaths(paths: string[]): FrameworkId {
       p.includes("next.config")
   );
   if (isNext) return "nextjs";
+
+  const isExpress = paths.some((p) => {
+    const parts = p.toLowerCase().split("/");
+    return (
+      parts.some((part) =>
+        ["routes", "route", "router", "routers", "controllers", "controller", "middleware", "middlewares"].includes(part)
+      ) ||
+      p === "app.js" ||
+      p === "server.js" ||
+      p.endsWith("bin/www")
+    );
+  });
+  if (isExpress) return "express";
 
   return "generic";
 }
@@ -133,6 +160,65 @@ export function classifyPathRoleFallback(filePath: string, framework: FrameworkI
     return "internal";
   }
 
+  if (framework === "express") {
+    const segments = p.toLowerCase().split("/");
+    const fileName = segments[segments.length - 1];
+
+    if (
+      fileName === "app.js" ||
+      fileName === "app.ts" ||
+      fileName === "server.js" ||
+      fileName === "server.ts" ||
+      p.endsWith("bin/www")
+    ) {
+      return "entry_point";
+    }
+
+    const hasFolder = (singular: string, plural: string) =>
+      segments.slice(0, -1).some((seg) => seg === singular || seg === plural);
+
+    if (
+      hasFolder("route", "routes") ||
+      hasFolder("router", "routers") ||
+      fileName.includes(".route.") ||
+      fileName.includes(".routes.") ||
+      fileName.includes(".router.")
+    ) {
+      return "route";
+    }
+
+    if (hasFolder("controller", "controllers") || fileName.includes(".controller.")) {
+      return "controller";
+    }
+
+    if (hasFolder("middleware", "middlewares") || fileName.includes(".middleware.")) {
+      return "middleware";
+    }
+
+    if (hasFolder("service", "services") || fileName.includes(".service.")) {
+      return "service";
+    }
+
+    if (
+      hasFolder("model", "models") ||
+      hasFolder("schema", "schemas") ||
+      hasFolder("entity", "entities") ||
+      fileName.includes(".model.") ||
+      fileName.includes(".schema.")
+    ) {
+      return "model";
+    }
+
+    if (
+      (p === "index.js" || p === "index.ts" || p === "src/index.js" || p === "src/index.ts") &&
+      segments.length <= 2
+    ) {
+      return "entry_point";
+    }
+
+    return "internal";
+  }
+
   // Generic
   if (p === "index.ts" || p === "index.js" || p === "src/index.ts" || p === "src/index.js" || p.includes("main.")) {
     return "entry_point";
@@ -143,6 +229,6 @@ export function classifyPathRoleFallback(filePath: string, framework: FrameworkI
   if (p.endsWith(".d.ts") || p.includes("types.") || p.includes("schema.")) {
     return "types";
   }
-  
+
   return "internal";
 }

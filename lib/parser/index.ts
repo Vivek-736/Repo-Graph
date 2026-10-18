@@ -12,7 +12,7 @@ import {
 import { FallbackAdapter, FrameworkAdapter } from "./adapter";
 import { detectAdapter } from "./adapters";
 import { walkRepository } from "./walker";
-import { extractImports } from "./extractor";
+import { extractImports, extractCommonJSExports } from "./extractor";
 import {
   loadPathAliases,
   loadPackageDependencies,
@@ -74,6 +74,7 @@ export function parseRepository(directoryPath: string, options: ParserOptions = 
   const failures: ImportFailure[] = [];
   const roles: import("./types").ExtractedRole[] = [];
   const routes: import("./types").ExtractedRoute[] = [];
+  const fileExports = new Map<string, string[]>();
 
   let resolvedInternal = 0;
   let externalDependencies = 0;
@@ -100,6 +101,11 @@ export function parseRepository(directoryPath: string, options: ParserOptions = 
       if (extractedRoutes && extractedRoutes.length > 0) {
         routes.push(...extractedRoutes);
       }
+    }
+
+    const cjsExports = extractCommonJSExports(sourceFile);
+    if (cjsExports.length > 0) {
+      fileExports.set(file.relativePath, cjsExports);
     }
 
     const extracted = extractImports(sourceFile);
@@ -169,6 +175,7 @@ export function parseRepository(directoryPath: string, options: ParserOptions = 
     contentHash: f.contentHash,
     fanIn: 0,
     fanOut: 0,
+    exports: fileExports.get(f.relativePath),
   }));
 
   const finalFiles = computeFanInOut(initialFiles, deduplicatedEdges);
