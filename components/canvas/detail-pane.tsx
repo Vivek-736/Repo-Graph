@@ -10,6 +10,11 @@ import {
   WalkDirection,
   INSIGHT_SENTENCES,
 } from "@/lib/parser/graph";
+import { 
+  getTaxonomy, 
+  classifyPathRoleFallback, 
+  FrameworkId 
+} from "@/lib/taxonomy";
 
 interface DetailPaneProps {
   data: ParserResult;
@@ -22,45 +27,45 @@ interface DetailPaneProps {
   onActiveWalkChange?: (walk: { paths: string[]; direction: WalkDirection | null }) => void;
 }
 
-export type DetailTab = "structure" | "explanation";
+export type DetailTab = "structure" | "routes" | "explanation";
 
 /**
- * Classifies a file into a human-readable role/kind.
+ * Returns badge styling for HTTP methods.
  */
-export function getFileKind(filePath: string): { label: string; color: string } {
-  const p = filePath.toLowerCase();
-  if (
-    p.includes("/page.") ||
-    p.includes("/route.") ||
-    p.includes("/layout.") ||
-    p.includes("proxy.") ||
-    p.includes("middleware.")
-  ) {
-    return { label: "Route / Page", color: "#a855f7" };
+export function getMethodBadge(method: string): string {
+  switch (method.toUpperCase()) {
+    case "GET":
+      return "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30";
+    case "POST":
+      return "bg-purple-500/15 text-purple-400 border border-purple-500/30";
+    case "PUT":
+      return "bg-amber-500/15 text-amber-400 border border-amber-500/30";
+    case "DELETE":
+      return "bg-rose-500/15 text-rose-400 border border-rose-500/30";
+    case "PATCH":
+      return "bg-yellow-500/15 text-yellow-400 border border-yellow-500/30";
+    default:
+      return "bg-slate-500/15 text-slate-300 border border-slate-500/30";
   }
-  if (p.startsWith("components/") || p.includes("/components/") || p.endsWith(".tsx")) {
-    return { label: "Component", color: "#38bdf8" };
-  }
-  if (p.startsWith("lib/") || p.includes("/lib/") || p.includes("server.") || p.includes("service.")) {
-    return { label: "Core Service", color: "#10b981" };
-  }
-  if (p.includes("types.") || p.includes("schema.") || p.endsWith(".d.ts")) {
-    return { label: "Type Contract", color: "#f59e0b" };
-  }
-  return { label: "Script / Tooling", color: "#f43f5e" };
 }
 
 /**
- * Detects framework from file tree.
+ * Classifies a file into a framework-defined role label and color.
  */
-export function detectFramework(files: ParsedFile[]): string {
-  const hasAppRouter = files.some((f) => f.path.startsWith("app/"));
-  const hasPagesRouter = files.some((f) => f.path.startsWith("pages/"));
-  if (hasAppRouter) return "Next.js (App Router)";
-  if (hasPagesRouter) return "Next.js (Pages Router)";
-  const hasVite = files.some((f) => f.path.includes("vite.config"));
-  if (hasVite) return "Vite";
-  return "Standalone TypeScript";
+export function getFileKind(
+  filePath: string,
+  frameworkId: FrameworkId = "generic",
+  roles?: import("@/lib/parser/types").ExtractedRole[]
+): { label: string; color: string } {
+  const roleRecord = roles?.find((r) => r.file === filePath);
+  const roleName = roleRecord?.role || classifyPathRoleFallback(filePath, frameworkId);
+  const taxonomy = getTaxonomy(frameworkId);
+  const match = taxonomy.categories.find((c) => c.role === roleName);
+
+  if (match) {
+    return { label: match.name, color: match.color };
+  }
+  return { label: roleName, color: "#64748b" };
 }
 
 export function DetailPane({
@@ -107,20 +112,31 @@ export function DetailPane({
     return parts.pop() || "repository";
   }, [rootPath]);
 
-  const frameworkName = useMemo(() => detectFramework(files), [files]);
+  const frameworkId = (data.framework as FrameworkId) || "generic";
+  const frameworkName =
+    data.frameworkName ||
+    (frameworkId === "nestjs" ? "NestJS" : frameworkId === "nextjs" ? "Next.js" : "Plain Library");
 
-  // Count route files
-  const routeCount = useMemo(() => {
-    return files.filter((f) => {
-      const p = f.path.toLowerCase();
-      return p.includes("/page.") || p.includes("/route.") || p.includes("proxy.");
-    }).length;
-  }, [files]);
+  const routes = useMemo(() => data.routes || [], [data.routes]);
+  const [routeSearch, setRouteSearch] = useState("");
+
+  const filteredRoutes = useMemo(() => {
+    if (!routeSearch.trim()) return routes;
+    const q = routeSearch.toLowerCase();
+    return routes.filter(
+      (r) =>
+        r.path.toLowerCase().includes(q) ||
+        r.method.toLowerCase().includes(q) ||
+        r.file.toLowerCase().includes(q)
+    );
+  }, [routes, routeSearch]);
+
+  const routeCount = routes.length;
 
   // Unidentified / unclassified files count
   const unclassifiedCount = useMemo(() => {
-    return files.filter((f) => getFileKind(f.path).label === "Script / Tooling").length;
-  }, [files]);
+    return files.filter((f) => getFileKind(f.path, frameworkId, data.roles).label === "Script / Tooling").length;
+  }, [files, frameworkId, data.roles]);
 
   // Top files the rest of the repository leans on most (fan-in DESC)
   const mostDependedOn = useMemo(() => {
@@ -206,39 +222,47 @@ export function DetailPane({
       {/* ========================================================================= */}
       {/* PANE TOP BAR: Tabs (when selected) or Resting Header                     */}
       {/* ========================================================================= */}
-      <div className="flex h-10 items-center justify-between border-b border-border px-3.5 bg-surface shrink-0">
-        {hasSelection ? (
-          <div className="flex items-center gap-1">
-            <button
-              type="button"
-              onClick={() => setActiveTab("structure")}
-              className={`rounded px-2.5 py-1 text-xs font-semibold cursor-pointer transition-colors ${
-                activeTab === "structure"
-                  ? "bg-surface-raised text-foreground border border-border"
-                  : "text-muted hover:text-foreground border border-transparent"
-              }`}
-            >
-              Structure
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab("explanation")}
-              className={`rounded px-2.5 py-1 text-xs font-semibold cursor-pointer transition-colors ${
-                activeTab === "explanation"
-                  ? "bg-surface-raised text-foreground border border-border"
-                  : "text-muted hover:text-foreground border border-transparent"
-              }`}
-            >
-              Explanation
-            </button>
-          </div>
-        ) : (
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted">
-              Repository Overview
-            </span>
-          </div>
-        )}
+      <div className="flex h-10 items-center justify-between border-b border-border px-2.5 bg-surface shrink-0">
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => setActiveTab("structure")}
+            className={`rounded px-2 py-0.5 text-xs font-semibold cursor-pointer transition-colors ${
+              activeTab === "structure"
+                ? "bg-surface-raised text-foreground border border-border"
+                : "text-muted hover:text-foreground border border-transparent"
+            }`}
+          >
+            Structure
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("routes")}
+            className={`rounded px-2 py-0.5 text-xs font-semibold cursor-pointer transition-colors flex items-center gap-1 ${
+              activeTab === "routes"
+                ? "bg-surface-raised text-foreground border border-border"
+                : "text-muted hover:text-foreground border border-transparent"
+            }`}
+          >
+            <span>Routes</span>
+            {routes.length > 0 && (
+              <span className="rounded bg-accent/15 px-1 py-0.2 text-[9px] text-accent font-bold border border-accent/30 font-mono">
+                {routes.length}
+              </span>
+            )}
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("explanation")}
+            className={`rounded px-2 py-0.5 text-xs font-semibold cursor-pointer transition-colors ${
+              activeTab === "explanation"
+                ? "bg-surface-raised text-foreground border border-border"
+                : "text-muted hover:text-foreground border border-transparent"
+            }`}
+          >
+            AI
+          </button>
+        </div>
 
         {hasSelection && (
           <button
@@ -261,9 +285,84 @@ export function DetailPane({
       {/* ========================================================================= */}
       <div className="flex-1 overflow-y-auto p-3.5 space-y-4">
         {/* ------------------------------------------------------------- */}
+        {/* CASE 0: ROUTES TAB VIEW                                       */}
+        {/* ------------------------------------------------------------- */}
+        {activeTab === "routes" && (
+          <div className="space-y-3">
+            {/* Search and stats bar */}
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-[10px] uppercase font-semibold text-muted tracking-wider">
+                  Declared Routes
+                </span>
+                <span className="text-[10px] text-muted">
+                  {filteredRoutes.length} of {routes.length}
+                </span>
+              </div>
+              <input
+                type="text"
+                placeholder="Filter routes (e.g. GET, /users)..."
+                value={routeSearch}
+                onChange={(e) => setRouteSearch(e.target.value)}
+                className="w-full rounded border border-border bg-surface-raised px-2.5 py-1 text-xs text-foreground focus:outline-hidden"
+              />
+            </div>
+
+            {/* Route List / Empty State */}
+            {routes.length === 0 ? (
+              <div className="rounded border border-border/80 bg-surface-raised/40 p-4 text-center space-y-1">
+                <div className="text-xs font-semibold text-foreground">No routes detected</div>
+                <p className="text-[10px] text-muted leading-relaxed">
+                  Either this codebase exposes no HTTP endpoints, or no framework adapter matched.
+                </p>
+              </div>
+            ) : filteredRoutes.length === 0 ? (
+              <div className="text-[10px] text-muted italic text-center py-4">
+                No routes matching &ldquo;{routeSearch}&rdquo;
+              </div>
+            ) : (
+              <div className="space-y-1.5">
+                {filteredRoutes.map((rt, idx) => (
+                  <div
+                    key={`${rt.file}-${rt.method}-${rt.path}-${idx}`}
+                    onClick={() => {
+                      onSelectFile(rt.file);
+                      setActiveTab("structure");
+                    }}
+                    onMouseEnter={() => onHoverTarget(rt.file)}
+                    onMouseLeave={() => onHoverTarget(null)}
+                    className="group flex flex-col gap-1 rounded border border-border/70 bg-surface-raised/40 p-2 cursor-pointer hover:border-accent/60 hover:bg-surface-raised transition-all"
+                    title={`Click to open ${rt.file}`}
+                  >
+                    <div className="flex items-center justify-between gap-1.5">
+                      <span
+                        className={`px-1.5 py-0.2 rounded text-[9px] font-bold tracking-wider shrink-0 ${getMethodBadge(
+                          rt.method
+                        )}`}
+                      >
+                        {rt.method}
+                      </span>
+                      <span
+                        className="font-mono text-foreground font-bold text-xs truncate flex-1"
+                        title={rt.path}
+                      >
+                        {rt.path}
+                      </span>
+                    </div>
+                    <div className="text-[10px] text-muted truncate font-mono group-hover:text-foreground/80">
+                      {rt.file}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ------------------------------------------------------------- */}
         {/* CASE 1: RESTING STATE (Nothing selected)                      */}
         {/* ------------------------------------------------------------- */}
-        {!hasSelection && (
+        {!hasSelection && activeTab === "structure" && (
           <div className="space-y-4">
             {/* Repo Title & Framework Badge */}
             <div>
@@ -548,6 +647,51 @@ export function DetailPane({
                   </div>
                 </div>
               )}
+            {/* Routes preview in resting view */}
+            {routes.length > 0 && (
+              <div className="space-y-2 pt-2 border-t border-border">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] uppercase font-semibold text-muted tracking-wider">
+                    Declared Routes ({routes.length})
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("routes")}
+                    className="text-[10px] text-accent hover:underline cursor-pointer"
+                  >
+                    View all in Routes tab →
+                  </button>
+                </div>
+                <div className="space-y-1">
+                  {routes.slice(0, 5).map((rt, idx) => (
+                    <div
+                      key={idx}
+                      onClick={() => onSelectFile(rt.file)}
+                      onMouseEnter={() => onHoverTarget(rt.file)}
+                      onMouseLeave={() => onHoverTarget(null)}
+                      className="flex items-center justify-between rounded border border-border/70 bg-surface-raised/40 p-1.5 text-[11px] cursor-pointer hover:border-accent/60 transition-colors"
+                      title={rt.file}
+                    >
+                      <div className="flex items-center gap-1.5 truncate pr-2">
+                        <span
+                          className={`px-1 py-0.2 rounded text-[9px] font-bold ${getMethodBadge(
+                            rt.method
+                          )}`}
+                        >
+                          {rt.method}
+                        </span>
+                        <span className="font-mono text-foreground font-semibold truncate" title={rt.path}>
+                          {rt.path}
+                        </span>
+                      </div>
+                      <span className="text-[10px] text-muted truncate max-w-[80px]">
+                        {rt.file.split("/").pop()}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
             </div>
           </div>
         )}
@@ -564,12 +708,12 @@ export function DetailPane({
                 <span
                   className="rounded px-1.5 py-0.2 text-[10px] font-medium"
                   style={{
-                    backgroundColor: `${getFileKind(selectedFile.path).color}15`,
-                    color: getFileKind(selectedFile.path).color,
-                    border: `1px solid ${getFileKind(selectedFile.path).color}40`,
+                    backgroundColor: `${getFileKind(selectedFile.path, frameworkId, data.roles).color}15`,
+                    color: getFileKind(selectedFile.path, frameworkId, data.roles).color,
+                    border: `1px solid ${getFileKind(selectedFile.path, frameworkId, data.roles).color}40`,
                   }}
                 >
-                  {getFileKind(selectedFile.path).label}
+                  {getFileKind(selectedFile.path, frameworkId, data.roles).label}
                 </span>
               </div>
               <h4 className="text-xs font-bold text-foreground break-all select-all mt-1">
@@ -577,6 +721,44 @@ export function DetailPane({
               </h4>
               <p className="text-[11px] text-muted mt-0.5">folder: {selectedFile.folder}</p>
             </div>
+
+            {/* Declared Routes in this file */}
+            {(() => {
+              const fileRoutes = routes.filter((r) => r.file === selectedFile.path);
+              if (fileRoutes.length === 0) return null;
+              return (
+                <div className="rounded border border-border bg-surface-raised/40 p-2.5 space-y-1.5">
+                  <div className="flex items-center justify-between text-[11px] font-semibold text-foreground">
+                    <span>Declared Routes</span>
+                    <span className="text-[10px] text-muted">
+                      {fileRoutes.length} endpoint{fileRoutes.length > 1 ? "s" : ""}
+                    </span>
+                  </div>
+                  <div className="space-y-1">
+                    {fileRoutes.map((rt, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center gap-2 rounded bg-surface p-1.5 border border-border/60"
+                      >
+                        <span
+                          className={`px-1.5 py-0.2 rounded text-[9px] font-bold tracking-wider shrink-0 ${getMethodBadge(
+                            rt.method
+                          )}`}
+                        >
+                          {rt.method}
+                        </span>
+                        <span
+                          className="font-mono text-foreground font-bold text-xs truncate"
+                          title={rt.path}
+                        >
+                          {rt.path}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* Metrics */}
             <div className="grid grid-cols-2 gap-2 text-center text-xs">

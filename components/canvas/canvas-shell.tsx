@@ -2,12 +2,14 @@
 
 import { useMemo, useState } from "react";
 import { ParserResult, ParsedFile } from "@/lib/parser/types";
+import { getTaxonomy, classifyPathRoleFallback, FrameworkId } from "@/lib/taxonomy";
 import { GraphCanvas } from "./graph-canvas";
 import { DetailPane } from "./detail-pane";
 
 export interface FileCategory {
   id: string;
   name: string;
+  role: string;
   color: string;
   count: number;
 }
@@ -17,37 +19,42 @@ interface CanvasShellProps {
 }
 
 /**
- * Pure function: categorizes files into a handful of distinct structural layers.
+ * Pure function: categorizes files according to the detected framework taxonomy.
+ * Fixed reading order: routable surfaces first, then layers behind them, then plumbing.
  */
-export function categorizeFiles(files: ParsedFile[]): FileCategory[] {
-  const categories: FileCategory[] = [
-    { id: "routes", name: "Routes & Pages", color: "#a855f7", count: 0 },
-    { id: "components", name: "Components", color: "#38bdf8", count: 0 },
-    { id: "services", name: "Core & Services", color: "#10b981", count: 0 },
-    { id: "types", name: "Types & Contracts", color: "#f59e0b", count: 0 },
-    { id: "tooling", name: "Scripts & Tooling", color: "#f43f5e", count: 0 },
-  ];
+export function categorizeFiles(
+  files: ParsedFile[],
+  frameworkId: FrameworkId = "generic",
+  roles?: import("@/lib/parser/types").ExtractedRole[]
+): FileCategory[] {
+  const taxonomy = getTaxonomy(frameworkId);
+  const roleMap = new Map<string, string>();
 
-  for (const file of files) {
-    const p = file.path.toLowerCase();
-    if (p.includes("/page.") || p.includes("/route.") || p.includes("/layout.") || p.includes("proxy.") || p.includes("middleware.")) {
-      categories[0].count++;
-    } else if (p.startsWith("components/") || p.includes("/components/") || p.endsWith(".tsx")) {
-      categories[1].count++;
-    } else if (p.startsWith("lib/") || p.includes("/lib/") || p.includes("server.") || p.includes("service.")) {
-      categories[2].count++;
-    } else if (p.includes("types.") || p.includes("schema.") || p.endsWith(".d.ts")) {
-      categories[3].count++;
-    } else {
-      categories[4].count++;
+  if (roles && roles.length > 0) {
+    for (const r of roles) {
+      roleMap.set(r.file, r.role);
     }
   }
 
-  return categories;
+  return taxonomy.categories.map((cat) => {
+    const count = files.filter((f) => {
+      const role = roleMap.get(f.path) || classifyPathRoleFallback(f.path, frameworkId);
+      return role === cat.role;
+    }).length;
+
+    return {
+      id: cat.id,
+      name: cat.name,
+      role: cat.role,
+      color: cat.color,
+      count,
+    };
+  });
 }
 
 export function CanvasShell({ data }: CanvasShellProps) {
   const { files, edges, stats, rootPath } = data;
+  const frameworkId = (data.framework as FrameworkId) || "generic";
 
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [selectedFilePath, setSelectedFilePath] = useState<string | null>(null);
@@ -58,7 +65,10 @@ export function CanvasShell({ data }: CanvasShellProps) {
     direction: "upstream" | "downstream" | null;
   }>({ paths: [], direction: null });
 
-  const categories = useMemo(() => categorizeFiles(files), [files]);
+  const categories = useMemo(
+    () => categorizeFiles(files, frameworkId, data.roles),
+    [files, frameworkId, data.roles]
+  );
 
   return (
     <div className="flex h-full w-full overflow-hidden font-mono text-xs">

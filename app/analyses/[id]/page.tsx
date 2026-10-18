@@ -8,6 +8,7 @@ import { CoverageBanner } from "@/components/canvas/coverage-banner";
 import { AnalysisProgress } from "@/components/analysis/analysis-progress";
 import { ParserResult, ParsedFile, ParsedEdge } from "@/lib/parser/types";
 import { extractDistinctFolders } from "@/lib/parser/graph";
+import { detectFrameworkFromPaths, classifyPathRoleFallback, FrameworkId } from "@/lib/taxonomy";
 import Link from "next/link";
 
 export const instant = false;
@@ -60,16 +61,26 @@ async function AnalysisContent({ analysisId }: { analysisId: string }) {
     );
   }
 
-  // 3. Analysis is completed: load real stored files and edges from database
-  const { data: rawFiles } = await supabase
-    .from("files")
-    .select("id, path, folder, extension, lines_count, content_hash, fan_in, fan_out")
-    .eq("analysis_id", analysis.id);
-
-  const { data: rawEdges } = await supabase
-    .from("edges")
-    .select("id, source_file_id, target_file_id, kind, raw_specifier, resolved, unresolved_reason")
-    .eq("analysis_id", analysis.id);
+  // 3. Analysis is completed: load real stored files, edges, routes, and roles from database
+  const [{ data: rawFiles }, { data: rawEdges }, { data: rawRoutes }, { data: rawRoles }] =
+    await Promise.all([
+      supabase
+        .from("files")
+        .select("id, path, folder, extension, lines_count, content_hash, fan_in, fan_out")
+        .eq("analysis_id", analysis.id),
+      supabase
+        .from("edges")
+        .select("id, source_file_id, target_file_id, kind, raw_specifier, resolved, unresolved_reason")
+        .eq("analysis_id", analysis.id),
+      supabase
+        .from("routes")
+        .select("id, file_id, method, path")
+        .eq("analysis_id", analysis.id),
+      supabase
+        .from("file_roles")
+        .select("id, file_id, role, confidence, source")
+        .eq("analysis_id", analysis.id),
+    ]);
 
   const fileIdToPath = new Map<string, string>();
   const files: ParsedFile[] = (rawFiles || []).map((f) => {
@@ -96,6 +107,45 @@ async function AnalysisContent({ analysisId }: { analysisId: string }) {
     unresolvedReason: e.unresolved_reason || undefined,
   }));
 
+  const routes: import("@/lib/parser/types").ExtractedRoute[] = (rawRoutes || []).map((r) => ({
+    file: fileIdToPath.get(r.file_id) || "unknown",
+    method: r.method,
+    path: r.path,
+  }));
+
+  // Detect framework from stored roles or file paths
+  const hasNestRoles = (rawRoles || []).some((r) =>
+    ["controller", "service", "module", "entity"].includes(r.role)
+  );
+  const hasNextRoles = (rawRoles || []).some((r) =>
+    ["page_route", "api_endpoint", "server_action"].includes(r.role)
+  );
+
+  let frameworkId: FrameworkId = "generic";
+  if (hasNestRoles) {
+    frameworkId = "nestjs";
+  } else if (hasNextRoles) {
+    frameworkId = "nextjs";
+  } else {
+    frameworkId = detectFrameworkFromPaths(files.map((f) => f.path));
+  }
+
+  // Populate roles from database or fallback classifier
+  const roles: import("@/lib/parser/types").ExtractedRole[] =
+    rawRoles && rawRoles.length > 0
+      ? rawRoles.map((r) => ({
+          file: fileIdToPath.get(r.file_id) || "unknown",
+          role: r.role,
+          confidence: Number(r.confidence || 1.0),
+          source: r.source || "database",
+        }))
+      : files.map((f) => ({
+          file: f.path,
+          role: classifyPathRoleFallback(f.path, frameworkId),
+          confidence: 0.8,
+          source: "fallback",
+        }));
+
   const folders = extractDistinctFolders(files);
   const totalLines = files.reduce((acc, f) => acc + f.linesCount, 0);
   const coveragePercent = analysis.coverage_percentage !== null
@@ -104,6 +154,8 @@ async function AnalysisContent({ analysisId }: { analysisId: string }) {
 
   const parserResult: ParserResult = {
     rootPath: repoUrl,
+    framework: frameworkId,
+    frameworkName: frameworkId === "nextjs" ? "Next.js" : frameworkId === "nestjs" ? "NestJS" : "Plain Library",
     stats: {
       filesFound: files.length,
       filesParsed: files.length,
@@ -115,6 +167,8 @@ async function AnalysisContent({ analysisId }: { analysisId: string }) {
     },
     files,
     edges,
+    roles,
+    routes,
     skippedFiles: [],
     coverage: {
       totalImports: edges.length,

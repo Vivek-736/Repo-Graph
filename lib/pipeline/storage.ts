@@ -314,14 +314,64 @@ export async function storeParserResult(
     }
   }
 
-  // 4. Calculate coverage and summary
+  // 4. Store framework roles and exact routes (Phase 8)
+  const roleRows = (result.roles || [])
+    .map((r) => {
+      const fileId = filePathToId.get(r.file);
+      if (!fileId) return null;
+      return {
+        organization_id: orgId,
+        analysis_id: analysisId,
+        file_id: fileId,
+        role: r.role,
+        confidence: r.confidence,
+        source: r.source,
+      };
+    })
+    .filter((row): row is NonNullable<typeof row> => Boolean(row));
+
+  if (roleRows.length > 0) {
+    for (let i = 0; i < roleRows.length; i += chunkSize) {
+      const chunk = roleRows.slice(i, i + chunkSize);
+      const { error } = await supabase.from("file_roles").insert(chunk);
+      if (error) {
+        console.warn("[Storage] Warning: Failed to insert file roles:", error.message);
+      }
+    }
+  }
+
+  const routeRows = (result.routes || [])
+    .map((r) => {
+      const fileId = filePathToId.get(r.file);
+      if (!fileId) return null;
+      return {
+        organization_id: orgId,
+        analysis_id: analysisId,
+        file_id: fileId,
+        method: r.method,
+        path: r.path,
+      };
+    })
+    .filter((row): row is NonNullable<typeof row> => Boolean(row));
+
+  if (routeRows.length > 0) {
+    for (let i = 0; i < routeRows.length; i += chunkSize) {
+      const chunk = routeRows.slice(i, i + chunkSize);
+      const { error } = await supabase.from("routes").insert(chunk);
+      if (error) {
+        console.warn("[Storage] Warning: Failed to insert routes:", error.message);
+      }
+    }
+  }
+
+  // 5. Calculate coverage and summary
   const totalImports = result.coverage.totalImports;
   const resolvedCount = result.coverage.resolvedInternal + result.coverage.externalDependencies + result.coverage.builtins;
   const coveragePercent = totalImports > 0 ? (resolvedCount / totalImports) * 100 : 100;
 
   const summary = `Parsed ${result.files.length} files and ${result.edges.length} edges across ${result.stats.distinctFolders} folders with ${coveragePercent.toFixed(1)}% import coverage.`;
 
-  // 5. Finalize analysis record
+  // 6. Finalize analysis record
   const { error: finalError } = await supabase
     .from("analyses")
     .update({
@@ -330,6 +380,7 @@ export async function storeParserResult(
       stage: "completed",
       files_count: result.files.length,
       edges_count: result.edges.length,
+      routes_count: result.routes?.length || 0,
       coverage_percentage: Number(coveragePercent.toFixed(2)),
       summary,
       updated_at: new Date().toISOString(),
