@@ -47,17 +47,17 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen w-full bg-background text-foreground font-mono selection:bg-accent selection:text-white">
       {/* ========================================================================= */}
-      {/* 1. STICKY HEADER                                                         */}
+      {/* 1. FLOATING ROUNDED HEADER                                               */}
       {/* ========================================================================= */}
-      <header className="sticky top-0 z-40 w-full border-b border-border bg-surface/90 backdrop-blur-md">
-        <div className="max-w-[1140px] mx-auto px-6 h-14 flex items-center justify-between">
+      <div className="sticky top-0 z-40 w-full pt-4 pb-2 px-4 sm:px-6 pointer-events-none">
+        <header className="max-w-[1140px] mx-auto h-16 px-6 flex items-center justify-between rounded-2xl border border-border bg-surface/85 backdrop-blur-md shadow-sm pointer-events-auto transition-all">
           {/* Logo & Product Name */}
-          <Link href="/" className="flex items-center gap-2.5 text-foreground hover:opacity-90 transition-opacity">
+          <Link href="/" className="flex items-center gap-3 text-foreground hover:opacity-90 transition-opacity">
             <Image
               src="/logo.svg"
               alt="RepoGraph Logo"
-              width={24}
-              height={24}
+              width={26}
+              height={26}
               priority
               className="rounded"
             />
@@ -76,8 +76,8 @@ export default function LandingPage() {
               <HeaderAuth />
             </Suspense>
           </div>
-        </div>
-      </header>
+        </header>
+      </div>
 
       {/* ========================================================================= */}
       {/* 2. HERO SECTION                                                          */}
