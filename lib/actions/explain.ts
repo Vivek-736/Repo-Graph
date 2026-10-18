@@ -38,14 +38,14 @@ export async function explainTarget({
   path,
   forceRefresh = false,
 }: ExplainTargetParams): Promise<ExplanationResponse> {
-  const { orgId } = await auth.protect();
+  const session = await auth();
+  const orgId = session?.orgId || session?.userId;
   if (!orgId) {
     return { success: false, error: "Authentication required." };
   }
 
-  // Use user client for RLS, fallback to admin client for database ops if user token is pending
-  const userClient = await createServerDatabaseClient();
-  const dbClient = userClient || createAdminDatabaseClient();
+  // Use admin client if available to prevent JWT RLS mismatches, fallback to user client
+  const dbClient = createAdminDatabaseClient() || (await createServerDatabaseClient());
 
   if (!dbClient) {
     return { success: false, error: "Database client is unavailable." };

@@ -20,13 +20,13 @@ export interface ClassifyResponse {
 export async function classifyUnmatchedFiles(
   analysisId: string
 ): Promise<ClassifyResponse> {
-  const { orgId } = await auth.protect();
+  const session = await auth();
+  const orgId = session?.orgId || session?.userId;
   if (!orgId) {
     return { success: false, classifiedCount: 0, error: "Authentication required." };
   }
 
-  const userClient = await createServerDatabaseClient();
-  const dbClient = userClient || createAdminDatabaseClient();
+  const dbClient = createAdminDatabaseClient() || (await createServerDatabaseClient());
   if (!dbClient) {
     return { success: false, classifiedCount: 0, error: "Database client unavailable." };
   }
