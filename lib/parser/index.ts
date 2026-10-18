@@ -10,6 +10,7 @@ import {
   ImportFailure,
 } from "./types";
 import { FallbackAdapter, FrameworkAdapter } from "./adapter";
+import { detectAdapter } from "./adapters";
 import { walkRepository } from "./walker";
 import { extractImports } from "./extractor";
 import {
@@ -52,7 +53,13 @@ export function parseRepository(directoryPath: string, options: ParserOptions = 
   // 2. Load path aliases and package dependencies
   const aliases = loadPathAliases(rootPath, options.tsconfigPath);
   const packageDeps = loadPackageDependencies(rootPath);
-  const adapter: FrameworkAdapter = new FallbackAdapter();
+  const adapter: FrameworkAdapter =
+    options.adapter ||
+    detectAdapter(
+      rootPath,
+      parseableFiles.map((f) => f.relativePath),
+      packageDeps
+    );
 
   // 3. Initialize in-memory ts-morph project
   const project = new Project({
@@ -65,6 +72,8 @@ export function parseRepository(directoryPath: string, options: ParserOptions = 
 
   const rawEdges: ParsedEdge[] = [];
   const failures: ImportFailure[] = [];
+  const roles: import("./types").ExtractedRole[] = [];
+  const routes: import("./types").ExtractedRoute[] = [];
 
   let resolvedInternal = 0;
   let externalDependencies = 0;
@@ -78,6 +87,21 @@ export function parseRepository(directoryPath: string, options: ParserOptions = 
   // 4. Parse AST for each parseable file
   for (const file of parseableFiles) {
     const sourceFile = project.createSourceFile(file.relativePath, file.content, { overwrite: true });
+
+    // Framework adapter role classification and exact route extraction
+    if (adapter.classifyRole) {
+      const role = adapter.classifyRole(file.relativePath, sourceFile);
+      if (role) {
+        roles.push(role);
+      }
+    }
+    if (adapter.extractRoutes) {
+      const extractedRoutes = adapter.extractRoutes(file.relativePath, sourceFile);
+      if (extractedRoutes && extractedRoutes.length > 0) {
+        routes.push(...extractedRoutes);
+      }
+    }
+
     const extracted = extractImports(sourceFile);
 
     for (const item of extracted) {
@@ -163,6 +187,8 @@ export function parseRepository(directoryPath: string, options: ParserOptions = 
 
   return {
     rootPath: rootPath.replace(/\\/g, "/"),
+    framework: adapter.name,
+    frameworkName: adapter.displayName,
     stats: {
       filesFound: totalFilesFound,
       filesParsed: finalFiles.length,
@@ -174,6 +200,8 @@ export function parseRepository(directoryPath: string, options: ParserOptions = 
     },
     files: finalFiles,
     edges: deduplicatedEdges,
+    roles,
+    routes,
     skippedFiles,
     coverage,
     folders,

@@ -53,11 +53,28 @@ export interface ParserStats {
   reexportsResolved: number;
 }
 
+export interface ExtractedRoute {
+  file: string;
+  method: string;
+  path: string;
+}
+
+export interface ExtractedRole {
+  file: string;
+  role: string;
+  confidence: number;
+  source: string;
+}
+
 export interface ParserResult {
   rootPath: string;
+  framework?: string;
+  frameworkName?: string;
   stats: ParserStats;
   files: ParsedFile[];
   edges: ParsedEdge[];
+  roles?: ExtractedRole[];
+  routes?: ExtractedRoute[];
   skippedFiles: SkippedFile[];
   coverage: ImportCoverage;
   folders: string[];
@@ -69,4 +86,6 @@ export interface ParserOptions {
   extraExcludes?: string[];
   /** Optional override for tsconfig path */
   tsconfigPath?: string;
+  /** Explicit adapter override, otherwise auto-detected */
+  adapter?: import("./adapter").FrameworkAdapter;
 }

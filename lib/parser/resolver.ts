@@ -210,7 +210,7 @@ export function resolveSpecifier(
 
     // 5. If not an alias and not relative, check external dependencies
     if (!matchedAlias) {
-      // e.g. 'react', '@clerk/nextjs', 'lodash/get'
+      // e.g. 'react', '@clerk/backend', 'lodash/get'
       const isScoped = specifier.startsWith("@");
       const parts = specifier.split("/");
       const rootPackage = isScoped && parts.length > 1 ? `${parts[0]}/${parts[1]}` : parts[0];

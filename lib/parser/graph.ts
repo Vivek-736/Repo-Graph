@@ -165,7 +165,6 @@ export function detectCycles(edges: ParsedEdge[]): string[][] {
           if (startIndex !== -1) {
             const loopVertices = stack.slice(startIndex).map((f) => f.node);
 
-            // Normalize representation: start with lexicographical minimum vertex
             let minIdx = 0;
             for (let i = 1; i < loopVertices.length; i++) {
               if (loopVertices[i] < loopVertices[minIdx]) minIdx = i;
@@ -331,25 +330,47 @@ export function computeInsights(files: ParsedFile[], edges: ParsedEdge[]): Insig
 /**
  * Classifies a file into a single category ID.
  */
+/**
+ * Classifies a file into a single category ID matching the framework taxonomy.
+ */
 export function getFileCategoryId(filePath: string): string {
-  const p = filePath.toLowerCase();
-  if (
-    p.includes("/page.") ||
-    p.includes("/route.") ||
-    p.includes("/layout.") ||
-    p.includes("proxy.") ||
-    p.includes("middleware.")
-  ) {
-    return "routes";
+  const p = filePath.toLowerCase().replace(/\\/g, "/");
+
+  // Routable surfaces
+  if (p.includes("/page.") || p.endsWith("page.tsx") || p.endsWith("page.ts")) {
+    return "page_routes";
   }
-  if (p.startsWith("components/") || p.includes("/components/") || p.endsWith(".tsx")) {
-    return "components";
+  if (p.includes("/route.") || p.includes("/api/") || p.endsWith("route.ts") || p.endsWith("route.js")) {
+    return "api_endpoints";
   }
-  if (p.startsWith("lib/") || p.includes("/lib/") || p.includes("server.") || p.includes("service.")) {
+  if (p.includes("action") || p.endsWith(".action.ts") || p.endsWith(".action.tsx")) {
+    return "server_actions";
+  }
+
+  // Nest surfaces
+  if (p.endsWith(".controller.ts") || p.endsWith(".controller.js")) {
+    return "controllers";
+  }
+  if (p.endsWith(".service.ts") || p.endsWith(".service.js") || p.includes("/services/")) {
     return "services";
   }
-  if (p.includes("types.") || p.includes("schema.") || p.endsWith(".d.ts")) {
+  if (p.endsWith(".module.ts") || p.endsWith(".module.js")) {
+    return "modules";
+  }
+  if (p.endsWith(".entity.ts") || p.endsWith(".entity.js")) {
+    return "entities";
+  }
+
+  // Common concepts
+  if (p.endsWith(".tsx") || p.endsWith(".jsx") || p.includes("/components/")) {
+    return "components";
+  }
+  if (p.includes("index.") || p.includes("main.")) {
+    return "entry_points";
+  }
+  if (p.includes("types.") || p.includes("schema.") || p.endsWith(".d.ts") || p.includes(".dto.")) {
     return "types";
   }
-  return "tooling";
+
+  return "internals";
 }
