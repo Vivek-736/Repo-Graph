@@ -347,11 +347,22 @@ export function getFileCategoryId(filePath: string): string {
     return "server_actions";
   }
 
+  // Express and REST surfaces
+  if (p.includes("/routes/") || p.includes("/route/") || p.includes("/router/") || p.includes("/routers/")) {
+    return "routes";
+  }
+  if (p.includes("/middleware/") || p.includes("/middlewares/") || p.includes(".middleware.")) {
+    return "middleware";
+  }
+  if (p.includes("/model/") || p.includes("/models/") || p.includes(".model.")) {
+    return "models";
+  }
+
   // Nest surfaces
-  if (p.endsWith(".controller.ts") || p.endsWith(".controller.js")) {
+  if (p.endsWith(".controller.ts") || p.endsWith(".controller.js") || p.includes("/controllers/") || p.includes("/controller/")) {
     return "controllers";
   }
-  if (p.endsWith(".service.ts") || p.endsWith(".service.js") || p.includes("/services/")) {
+  if (p.endsWith(".service.ts") || p.endsWith(".service.js") || p.includes("/services/") || p.includes("/service/")) {
     return "services";
   }
   if (p.endsWith(".module.ts") || p.endsWith(".module.js")) {
@@ -365,7 +376,7 @@ export function getFileCategoryId(filePath: string): string {
   if (p.endsWith(".tsx") || p.endsWith(".jsx") || p.includes("/components/")) {
     return "components";
   }
-  if (p.includes("index.") || p.includes("main.")) {
+  if (p.includes("index.") || p.includes("main.") || p.includes("app.") || p.includes("server.")) {
     return "entry_points";
   }
   if (p.includes("types.") || p.includes("schema.") || p.endsWith(".d.ts") || p.includes(".dto.")) {

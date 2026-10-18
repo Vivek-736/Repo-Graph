@@ -153,7 +153,7 @@ async function runAcceptanceChecks(): Promise<void> {
     typeof sampleEdge.source !== "string" ||
     typeof sampleEdge.specifier !== "string" ||
     typeof sampleEdge.resolved !== "boolean" ||
-    !["import", "reexport", "dynamic"].includes(sampleEdge.kind)
+    !["import", "reexport", "dynamic", "require"].includes(sampleEdge.kind)
   ) {
     throw new Error("[Check 5 FAILED] Edge properties do not match ParsedEdge interface");
   }
