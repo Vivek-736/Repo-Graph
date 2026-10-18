@@ -118,39 +118,59 @@ input[type="submit"],
   cursor: pointer !important;
 }
 
-.cl-card,
-.cl-modalContent,
-.cl-userButtonPopoverCard,
-.cl-organizationSwitcherPopoverCard {
-  background-color: var(--surface) !important;
-  color: var(--foreground) !important;
-  border: 1px solid var(--border) !important;
-  box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.15) !important;
+/* Ensure GitHub icon has sharp contrast in dark mode */
+html.dark .cl-providerIcon__github,
+:root[data-theme="dark"] .cl-providerIcon__github,
+.dark .cl-providerIcon__github {
+  filter: invert(1) !important;
 }
 
-.cl-headerTitle,
-.cl-modalTitle,
-.cl-userButtonPopoverActionButtonText,
-.cl-userPreviewMainIdentifier,
-.cl-organizationSwitcherTrigger,
-.cl-organizationSwitcherPopoverActions,
-.cl-organizationSwitcherPreviewButton {
-  color: var(--foreground) !important;
+button.cl-formButtonPrimary,
+.cl-formButtonPrimary,
+.cl-formButtonPrimary:hover,
+.cl-formButtonPrimary:focus,
+.cl-formButtonPrimary:active,
+.cl-card .cl-formButtonPrimary,
+.cl-modalContent .cl-formButtonPrimary {
+  background-color: var(--accent-blue) !important;
+  color: #ffffff !important;
+  border-radius: 6px !important;
+  box-shadow: none !important;
+  -webkit-box-shadow: none !important;
+  filter: none !important;
+  -webkit-filter: none !important;
+  text-shadow: none !important;
 }
 
-.cl-headerSubtitle,
-.cl-userPreviewSecondaryIdentifier,
-.cl-userButtonPopoverActionButtonIcon,
-.cl-userButtonPopoverFooter,
-.cl-organizationSwitcherPopoverFooter {
+/* Remove Clerk Development Mode watermark and badge */
+[data-localization-key*="developmentMode"],
+[data-localization-key="badge__developmentMode"],
+[class*="developmentMode"],
+[class*="devMode"],
+[class*="DevelopmentMode"],
+.cl-internal-ph3875,
+.cl-internal-1dauvpw,
+.cl-badge,
+.cl-developmentModeBadge {
+  display: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  opacity: 0 !important;
+}
+
+.cl-dividerLine {
+  background-color: var(--border) !important;
+}
+
+.cl-modalCloseButton {
   color: var(--muted) !important;
 }
 
-.cl-formFieldInput,
-.cl-input {
-  background-color: var(--surface-raised) !important;
+.cl-modalCloseButton:hover {
   color: var(--foreground) !important;
-  border: 1px solid var(--border) !important;
 }
 
 .cl-userButtonPopoverActionButton,

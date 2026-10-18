@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ClerkProvider } from "@clerk/nextjs";
+import { ClerkThemeProvider } from "@/components/clerk-theme-provider";
 import { Suspense } from "react";
 import { Roboto_Condensed } from "next/font/google";
 import { GlobalLoader } from "@/components/ui/global-loader";
@@ -9,7 +9,6 @@ const robotoCondensed = Roboto_Condensed({
   subsets: ["latin"],
   variable: "--font-roboto-condensed",
   weight: ["300", "400", "500", "600", "700"],
-  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -42,7 +41,7 @@ const themeInitScript = `
         root.classList.add('light');
       }
     }
-  } catch(e) {}
+  } catch(e) { }
 })();
 `;
 
@@ -64,20 +63,9 @@ export default function RootLayout({
         <Suspense fallback={null}>
           <GlobalLoader />
         </Suspense>
-        <ClerkProvider
-          appearance={{
-            variables: {
-              colorPrimary: "var(--accent-blue)",
-              colorBackground: "var(--surface)",
-              colorForeground: "var(--foreground)",
-              colorMutedForeground: "var(--muted)",
-              colorInput: "var(--surface-raised)",
-              colorInputForeground: "var(--foreground)",
-            },
-          }}
-        >
+        <ClerkThemeProvider>
           {children}
-        </ClerkProvider>
+        </ClerkThemeProvider>
       </body>
     </html>
   );
