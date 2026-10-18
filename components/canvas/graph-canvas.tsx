@@ -447,7 +447,7 @@ function InnerGraphCanvas({
         target: group.target,
         sourceHandle: group.sourceHandle,
         targetHandle: group.targetHandle,
-        type: "bezier",
+        type: "default",
         zIndex,
         animated: isIncoming || isOutgoing || isHover,
         style: {

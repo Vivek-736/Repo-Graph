@@ -1,34 +1,35 @@
-function getEnv(key: string, required = false): string {
-  const value = process.env[key];
-  if (required && (!value || value.trim() === "")) {
-    throw new Error(
-      `[Startup Error] Missing required environment variable: ${key}. Please check your .env.local file.`
-    );
-  }
-  return value || "";
-}
-
+/**
+ * Environment variables helper.
+ * Uses direct static access (e.g. process.env.NEXT_PUBLIC_...) so Next.js / Turbopack
+ * can inline NEXT_PUBLIC_ variables into client bundles at compile time.
+ */
 export const env = {
   // Clerk
-  NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: getEnv("NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY", true),
-  CLERK_SECRET_KEY: getEnv("CLERK_SECRET_KEY", true),
-  NEXT_PUBLIC_CLERK_SIGN_IN_URL: getEnv("NEXT_PUBLIC_CLERK_SIGN_IN_URL") || "/sign-in",
-  NEXT_PUBLIC_CLERK_SIGN_UP_URL: getEnv("NEXT_PUBLIC_CLERK_SIGN_UP_URL") || "/sign-up",
+  get NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY(): string {
+    return process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || "";
+  },
+  get CLERK_SECRET_KEY(): string {
+    return process.env.CLERK_SECRET_KEY || "";
+  },
+  get NEXT_PUBLIC_CLERK_SIGN_IN_URL(): string {
+    return process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL || "/sign-in";
+  },
+  get NEXT_PUBLIC_CLERK_SIGN_UP_URL(): string {
+    return process.env.NEXT_PUBLIC_CLERK_SIGN_UP_URL || "/sign-up";
+  },
 
-  // Supabase (lazy getters so missing values report cleanly rather than crashing module evaluation)
+  // Supabase
   get NEXT_PUBLIC_SUPABASE_URL(): string {
-    return getEnv("NEXT_PUBLIC_SUPABASE_URL", true);
+    return process.env.NEXT_PUBLIC_SUPABASE_URL || "";
   },
   get NEXT_PUBLIC_SUPABASE_ANON_KEY(): string {
-    return getEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY", true);
+    return process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
   },
 
   hasSupabaseConfig(): boolean {
     return Boolean(
       process.env.NEXT_PUBLIC_SUPABASE_URL &&
-      process.env.NEXT_PUBLIC_SUPABASE_URL.trim() !== "" &&
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY &&
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY.trim() !== ""
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
     );
   },
 };
